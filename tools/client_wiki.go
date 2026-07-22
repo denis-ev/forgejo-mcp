@@ -16,26 +16,71 @@ import (
 
 // nameToWikiSubURL converts a wiki page title (as displayed by the Forgejo/
 // Gitea UI and returned by list_wiki_pages) into the URL-encoded sub_url
-// slug expected by the wiki page endpoints. This mirrors Gitea's own
-// wiki.NameToSubURL: spaces become hyphens, then the result is percent-
-// encoded (so "/" becomes "%2F", matching what the server returns in
-// MyWikiPageMetaData.SubURL).
+// slug expected by the wiki page endpoints:
+//   - Spaces become hyphens
+//   - Each path segment is percent-encoded and joined with "%2F"
+//   - Nested pages (title contains "/") get a ".-" suffix appended, matching
+//     what Gitea/Forgejo actually returns as sub_url (verified against a
+//     live Gitea 1.25.4 instance; see raohwork/forgejo-mcp#6)
+//   - Input that already looks like an encoded sub_url (contains "%2f",
+//     case-insensitive) is returned unchanged to avoid double-encoding
 func nameToWikiSubURL(name string) string {
-	return url.PathEscape(strings.ReplaceAll(name, " ", "-"))
+	if strings.Contains(strings.ToLower(name), "%2f") {
+		return name
+	}
+
+	slug := strings.ReplaceAll(name, " ", "-")
+
+	if !strings.Contains(slug, "/") {
+		return url.PathEscape(slug)
+	}
+
+	parts := strings.Split(slug, "/")
+	for i, part := range parts {
+		parts[i] = url.PathEscape(part)
+	}
+	result := strings.Join(parts, "%2F")
+
+	if !strings.HasSuffix(result, ".-") {
+		result += ".-"
+	}
+
+	return result
 }
 
 // MyListWikiPages lists all wiki pages in a repository.
+// It paginates through all results since the Gitea/Forgejo API defaults
+// to returning only 30 items per page.
 // GET /repos/{owner}/{repo}/wiki/pages
 func (c *Client) MyListWikiPages(owner, repo string) ([]*types.MyWikiPageMetaData, error) {
-	endpoint := fmt.Sprintf("/api/v1/repos/%s/%s/wiki/pages", owner, repo)
+	var allPages []*types.MyWikiPageMetaData
+	page := 1
+	limit := 50
 
-	var result []*types.MyWikiPageMetaData
-	err := c.sendSimpleRequest("GET", endpoint, nil, &result)
-	if err != nil {
-		return nil, err
+	for {
+		endpoint := fmt.Sprintf("/api/v1/repos/%s/%s/wiki/pages?page=%d&limit=%d", owner, repo, page, limit)
+
+		var result []*types.MyWikiPageMetaData
+		err := c.sendSimpleRequest("GET", endpoint, nil, &result)
+		if err != nil {
+			// First page error means wiki not initialized or other failure
+			if page == 1 {
+				return nil, err
+			}
+			// Later page errors mean we've exhausted results
+			break
+		}
+
+		allPages = append(allPages, result...)
+
+		// If we got fewer than limit, we've reached the last page
+		if len(result) < limit {
+			break
+		}
+		page++
 	}
 
-	return result, nil
+	return allPages, nil
 }
 
 // MyGetWikiPage gets a single wiki page by name.

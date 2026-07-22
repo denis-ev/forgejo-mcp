@@ -16,8 +16,10 @@ import (
 )
 
 // TestNameToWikiSubURL documents the expected slug conversion for wiki page
-// titles, mirroring Gitea's own wiki.NameToSubURL implementation: spaces
-// become hyphens, then the result is percent-encoded.
+// titles: spaces become hyphens, path segments are percent-encoded and
+// joined with "%2F", and nested pages get a ".-" suffix. This matches
+// sub_url values actually returned by Gitea/Forgejo (verified against a
+// live Gitea 1.25.4 instance; see raohwork/forgejo-mcp#6).
 func TestNameToWikiSubURL(t *testing.T) {
 	tests := []struct {
 		name string
@@ -25,7 +27,11 @@ func TestNameToWikiSubURL(t *testing.T) {
 		want string
 	}{
 		{"simple title", "Getting Started", "Getting-Started"},
-		{"slash in title", "architecture/signal-processing-strategies", "architecture%2Fsignal-processing-strategies"},
+		{"slash in title", "architecture/signal-processing-strategies", "architecture%2Fsignal-processing-strategies.-"},
+		{"deep nesting", "architecture/mflow/MFLOW-glossary", "architecture%2Fmflow%2FMFLOW-glossary.-"},
+		{"nested with spaces", "getting started/quick reference", "getting-started%2Fquick-reference.-"},
+		{"already encoded passthrough", "architecture%2Foverview.-", "architecture%2Foverview.-"},
+		{"already encoded lowercase passthrough", "architecture%2foverview.-", "architecture%2foverview.-"},
 	}
 
 	for _, tt := range tests {
@@ -46,7 +52,7 @@ func TestNameToWikiSubURL(t *testing.T) {
 // was supplied.
 func TestClient_MyGetWikiPage_TitleFallback(t *testing.T) {
 	const title = "architecture/signal-processing-strategies"
-	const slug = "architecture%2Fsignal-processing-strategies"
+	const slug = "architecture%2Fsignal-processing-strategies.-"
 
 	var gotPaths []string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +142,7 @@ func TestClient_MyGetWikiPage_NotFoundBothForms(t *testing.T) {
 // behavior for the edit (PATCH) endpoint.
 func TestClient_MyEditWikiPage_TitleFallback(t *testing.T) {
 	const title = "architecture/signal-processing-strategies"
-	const slug = "architecture%2Fsignal-processing-strategies"
+	const slug = "architecture%2Fsignal-processing-strategies.-"
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		wantSlugPath := "/api/v1/repos/owner/repo/wiki/page/" + slug
@@ -167,7 +173,7 @@ func TestClient_MyEditWikiPage_TitleFallback(t *testing.T) {
 // behavior for the delete (DELETE) endpoint.
 func TestClient_MyDeleteWikiPage_TitleFallback(t *testing.T) {
 	const title = "architecture/signal-processing-strategies"
-	const slug = "architecture%2Fsignal-processing-strategies"
+	const slug = "architecture%2Fsignal-processing-strategies.-"
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		wantSlugPath := "/api/v1/repos/owner/repo/wiki/page/" + slug
@@ -189,4 +195,113 @@ func TestClient_MyDeleteWikiPage_TitleFallback(t *testing.T) {
 	if err := client.MyDeleteWikiPage("owner", "repo", title); err != nil {
 		t.Fatalf("Expected fallback request to succeed, got error: %v", err)
 	}
+}
+
+// TestMyListWikiPages_Pagination verifies list_wiki_pages paginates through
+// all results instead of returning only the first page (Gitea's API
+// defaults to 30 items/page), so wikis with more than one page of pages
+// aren't silently truncated.
+func TestMyListWikiPages_Pagination(t *testing.T) {
+	t.Run("paginates_through_all_pages", func(t *testing.T) {
+		// Mock server that returns 50 items on page 1, 30 on page 2
+		requestCount := 0
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestCount++
+			page := r.URL.Query().Get("page")
+
+			var pages []*types.MyWikiPageMetaData
+			if page == "1" {
+				// Return 50 items (full page)
+				for i := 0; i < 50; i++ {
+					pages = append(pages, &types.MyWikiPageMetaData{
+						Title:  "page-" + string(rune('A'+i%26)) + string(rune('0'+i/26)),
+						SubURL: "page-" + string(rune('A'+i%26)) + string(rune('0'+i/26)),
+					})
+				}
+			} else if page == "2" {
+				// Return 30 items (partial page = last page)
+				for i := 0; i < 30; i++ {
+					pages = append(pages, &types.MyWikiPageMetaData{
+						Title:  "page-extra-" + string(rune('A'+i%26)),
+						SubURL: "page-extra-" + string(rune('A'+i%26)),
+					})
+				}
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(pages)
+		}))
+		defer server.Close()
+
+		client, err := NewClient(server.URL, "test-token", forgejo_version_to_test, server.Client())
+		if err != nil {
+			t.Fatalf("Failed to create client: %v", err)
+		}
+
+		pages, err := client.MyListWikiPages("owner", "repo")
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+
+		if len(pages) != 80 {
+			t.Errorf("Expected 80 pages (50+30), got %d", len(pages))
+		}
+		if requestCount != 2 {
+			t.Errorf("Expected 2 API requests (2 pages), got %d", requestCount)
+		}
+	})
+
+	t.Run("single_page_no_extra_request", func(t *testing.T) {
+		requestCount := 0
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestCount++
+			// Return 10 items (less than limit=50, so no second page)
+			var pages []*types.MyWikiPageMetaData
+			for i := 0; i < 10; i++ {
+				pages = append(pages, &types.MyWikiPageMetaData{
+					Title: "page-" + string(rune('A'+i)),
+				})
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(pages)
+		}))
+		defer server.Close()
+
+		client, err := NewClient(server.URL, "test-token", forgejo_version_to_test, server.Client())
+		if err != nil {
+			t.Fatalf("Failed to create client: %v", err)
+		}
+
+		pages, err := client.MyListWikiPages("owner", "repo")
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+
+		if len(pages) != 10 {
+			t.Errorf("Expected 10 pages, got %d", len(pages))
+		}
+		if requestCount != 1 {
+			t.Errorf("Expected 1 API request (single page), got %d", requestCount)
+		}
+	})
+
+	t.Run("empty_wiki_returns_error", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{
+				"message": "no such file or directory",
+			})
+		}))
+		defer server.Close()
+
+		client, err := NewClient(server.URL, "test-token", forgejo_version_to_test, server.Client())
+		if err != nil {
+			t.Fatalf("Failed to create client: %v", err)
+		}
+
+		_, err = client.MyListWikiPages("owner", "repo")
+		if err == nil {
+			t.Error("Expected error for 404 response, got nil")
+		}
+	})
 }
