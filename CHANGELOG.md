@@ -12,6 +12,20 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-22
+
+### Added
+
+- **`get_file_contents`** tool — read a file's decoded contents, or list a
+  directory's entries, at an optional ref (branch, tag, or commit SHA). Large
+  files are truncated and binary files are detected and skipped rather than
+  dumped. This closes the fork's biggest gap: previously the server could
+  manage repository *metadata* but could not read a single line of source.
+- **`list_commits`** tool — list commits with optional branch/SHA start point,
+  path filter, and pagination.
+- **`get_commit`** tool — view a single commit's metadata and stats, optionally
+  including its raw unified diff (truncated for very large diffs).
+
 ## [0.1.0] - 2026-07-22
 
 First independent fork release. Everything already merged from community PRs and

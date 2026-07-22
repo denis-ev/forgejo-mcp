@@ -31,6 +31,7 @@ Supported operations:
   - Releases (list, create, edit, delete, manage attachments)
   - Pull requests (list, view, merge, reviews, review comments, reply to reviews)
   - Repository search and listing (including a user's repositories)
+  - Repository browsing (read file contents, list directories, list commits, view a commit with diff)
   - Wiki pages (create, edit, delete, list)
   - Forgejo Actions (list tasks, list/get workflow runs, list run jobs, fetch job logs)
 

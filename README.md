@@ -34,6 +34,11 @@ Then this tool is made for you!
 - Manage milestones (create, edit, delete)
 - Repository search and listing
 
+### Repository Browsing
+- Read file contents and list directory entries at any ref (`get_file_contents`)
+- List commits, optionally filtered by branch/SHA or path (`list_commits`)
+- View a single commit's metadata and stats, optionally with its diff (`get_commit`)
+
 ### Release Management
 - Manage version releases
 - Manage release attachments
