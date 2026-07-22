@@ -12,6 +12,20 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-22
+
+### Added
+
+- **`get_commit_status`** tool — read the combined CI/commit status for a
+  branch, tag, or commit SHA, including each individual status context
+  (build, lint, tests, etc.).
+- **`create_commit_status`** tool — attach a `pending`/`success`/`error`/
+  `failure` status to a commit SHA with an optional context label,
+  description, and target URL, for external gating.
+
+This release brings the fork roughly to parity with the equivalent GitHub
+tooling for everyday repository/PR/CI workflows.
+
 ## [0.4.0] - 2026-07-22
 
 ### Added

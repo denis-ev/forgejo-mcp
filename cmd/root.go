@@ -33,6 +33,7 @@ Supported operations:
   - Repository search and listing (including a user's repositories)
   - Repository browsing (read file contents, list directories, list commits, view a commit with diff)
   - Branches and tags (list branches, create branches, list tags, create tags)
+  - Commit statuses / checks (read combined status, create commit statuses)
   - Wiki pages (create, edit, delete, list)
   - Forgejo Actions (list tasks, list/get workflow runs, list run jobs, fetch job logs)
 

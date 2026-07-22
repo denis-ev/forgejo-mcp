@@ -40,6 +40,7 @@
 - 查看單一提交的中繼資料與統計，可選附上 diff（`get_commit`）
 - 列出與建立分支（`list_branches`、`create_branch`）
 - 列出與建立標籤（`list_tags`、`create_tag`）
+- 讀取提交的合併 CI 狀態並建立提交狀態（`get_commit_status`、`create_commit_status`）
 
 ### 發布管理
 - 管理版本發布

@@ -40,6 +40,7 @@ Then this tool is made for you!
 - View a single commit's metadata and stats, optionally with its diff (`get_commit`)
 - List and create branches (`list_branches`, `create_branch`)
 - List and create tags (`list_tags`, `create_tag`)
+- Read a commit's combined CI status and set commit statuses (`get_commit_status`, `create_commit_status`)
 
 ### Release Management
 - Manage version releases
