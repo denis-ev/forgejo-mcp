@@ -29,10 +29,10 @@ Supported operations:
   - Labels (list, create, edit, delete)
   - Milestones (list, create, edit, delete)
   - Releases (list, create, edit, delete, manage attachments)
-  - Pull requests (list, view)
-  - Repository search and listing
+  - Pull requests (list, view, reviews, review comments, reply to reviews)
+  - Repository search and listing (including a user's repositories)
   - Wiki pages (create, edit, delete, list)
-  - Forgejo Actions tasks (list)
+  - Forgejo Actions (list tasks, list/get workflow runs, list run jobs, fetch job logs)
 
 Available transport modes:
   - stdio: Standard input/output (best for local integration)
