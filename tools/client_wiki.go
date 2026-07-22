@@ -8,9 +8,21 @@ package tools
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/raohwork/forgejo-mcp/types"
 )
+
+// nameToWikiSubURL converts a wiki page title (as displayed by the Forgejo/
+// Gitea UI and returned by list_wiki_pages) into the URL-encoded sub_url
+// slug expected by the wiki page endpoints. This mirrors Gitea's own
+// wiki.NameToSubURL: spaces become hyphens, then the result is percent-
+// encoded (so "/" becomes "%2F", matching what the server returns in
+// MyWikiPageMetaData.SubURL).
+func nameToWikiSubURL(name string) string {
+	return url.PathEscape(strings.ReplaceAll(name, " ", "-"))
+}
 
 // MyListWikiPages lists all wiki pages in a repository.
 // GET /repos/{owner}/{repo}/wiki/pages
@@ -28,12 +40,32 @@ func (c *Client) MyListWikiPages(owner, repo string) ([]*types.MyWikiPageMetaDat
 
 // MyGetWikiPage gets a single wiki page by name.
 // GET /repos/{owner}/{repo}/wiki/page/{pageName}
+//
+// pageName may be either the raw sub_url slug (as returned by
+// list_wiki_pages) or the human-readable page title (as displayed by the
+// UI). The API only accepts the slug form, so if the first request 404s,
+// pageName is converted via nameToWikiSubURL and retried once. This avoids
+// forcing callers to know about Gitea's internal slug encoding.
 func (c *Client) MyGetWikiPage(owner, repo, pageName string) (*types.MyWikiPage, error) {
 	endpoint := fmt.Sprintf("/api/v1/repos/%s/%s/wiki/page/%s", owner, repo, pageName)
 
 	var result types.MyWikiPage
 	err := c.sendSimpleRequest("GET", endpoint, nil, &result)
-	if err != nil {
+	if err == nil {
+		return &result, nil
+	}
+	if !isNotFoundErr(err) {
+		return nil, err
+	}
+
+	// Retry with the slug form derived from the title.
+	slug := nameToWikiSubURL(pageName)
+	if slug == pageName {
+		return nil, err
+	}
+	endpoint = fmt.Sprintf("/api/v1/repos/%s/%s/wiki/page/%s", owner, repo, slug)
+	result = types.MyWikiPage{}
+	if err2 := c.sendSimpleRequest("GET", endpoint, nil, &result); err2 != nil {
 		return nil, err
 	}
 
@@ -56,13 +88,28 @@ func (c *Client) MyCreateWikiPage(owner, repo string, options types.MyCreateWiki
 
 // MyDeleteWikiPage deletes a wiki page.
 // DELETE /repos/{owner}/{repo}/wiki/page/{pageName}
+//
+// See MyGetWikiPage for why pageName is retried as a slug on 404.
 func (c *Client) MyDeleteWikiPage(owner, repo, pageName string) error {
 	endpoint := fmt.Sprintf("/api/v1/repos/%s/%s/wiki/page/%s", owner, repo, pageName)
 
 	// DELETE returns 204 No Content on success
 	var result interface{}
 	err := c.sendSimpleRequest("DELETE", endpoint, nil, &result)
-	if err != nil {
+	if err == nil {
+		return nil
+	}
+	if !isNotFoundErr(err) {
+		return err
+	}
+
+	slug := nameToWikiSubURL(pageName)
+	if slug == pageName {
+		return err
+	}
+	endpoint = fmt.Sprintf("/api/v1/repos/%s/%s/wiki/page/%s", owner, repo, slug)
+	result = nil
+	if err2 := c.sendSimpleRequest("DELETE", endpoint, nil, &result); err2 != nil {
 		return err
 	}
 
@@ -71,12 +118,27 @@ func (c *Client) MyDeleteWikiPage(owner, repo, pageName string) error {
 
 // MyEditWikiPage edits an existing wiki page.
 // PATCH /repos/{owner}/{repo}/wiki/page/{pageName}
+//
+// See MyGetWikiPage for why pageName is retried as a slug on 404.
 func (c *Client) MyEditWikiPage(owner, repo, pageName string, options types.MyCreateWikiPageOptions) (*types.MyWikiPage, error) {
 	endpoint := fmt.Sprintf("/api/v1/repos/%s/%s/wiki/page/%s", owner, repo, pageName)
 
 	var result types.MyWikiPage
 	err := c.sendSimpleRequest("PATCH", endpoint, options, &result)
-	if err != nil {
+	if err == nil {
+		return &result, nil
+	}
+	if !isNotFoundErr(err) {
+		return nil, err
+	}
+
+	slug := nameToWikiSubURL(pageName)
+	if slug == pageName {
+		return nil, err
+	}
+	endpoint = fmt.Sprintf("/api/v1/repos/%s/%s/wiki/page/%s", owner, repo, slug)
+	result = types.MyWikiPage{}
+	if err2 := c.sendSimpleRequest("PATCH", endpoint, options, &result); err2 != nil {
 		return nil, err
 	}
 
