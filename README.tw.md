@@ -46,6 +46,7 @@
 ### Pull Request
 - 查看、列出、建立 Pull Request
 - 合併 Pull Request（merge/rebase/rebase-merge/squash，可選在檢查通過後自動合併）並查詢合併狀態
+- 檢視 Pull Request 的變更檔案（`get_pull_request_files`）與原始 diff（`get_pull_request_diff`）
 - 列出 Pull Request 審查與行內審查留言
 - 建立 Pull Request 審查並回覆審查留言
 

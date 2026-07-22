@@ -12,6 +12,16 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-22
+
+### Added
+
+- **`get_pull_request_files`** tool — list the files changed by a pull request,
+  with per-file status and addition/deletion counts, with pagination.
+- **`get_pull_request_diff`** tool — fetch a pull request's raw unified diff
+  (truncated for very large diffs, optional binary inclusion). Together these
+  let a client actually review a PR's contents, not just its metadata.
+
 ## [0.2.0] - 2026-07-22
 
 ### Added

@@ -29,7 +29,7 @@ Supported operations:
   - Labels (list, create, edit, delete)
   - Milestones (list, create, edit, delete)
   - Releases (list, create, edit, delete, manage attachments)
-  - Pull requests (list, view, merge, reviews, review comments, reply to reviews)
+  - Pull requests (list, view, merge, changed files, diff, reviews, review comments, reply to reviews)
   - Repository search and listing (including a user's repositories)
   - Repository browsing (read file contents, list directories, list commits, view a commit with diff)
   - Wiki pages (create, edit, delete, list)
