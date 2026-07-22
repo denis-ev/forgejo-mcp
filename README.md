@@ -40,6 +40,7 @@ Then this tool is made for you!
 
 ### Pull Requests
 - View, list, and create Pull Requests
+- Merge Pull Requests (merge/rebase/rebase-merge/squash, optional auto-merge on checks) and check merge status
 - List Pull Request reviews and inline review comments
 - Create Pull Request reviews and reply to review comments
 

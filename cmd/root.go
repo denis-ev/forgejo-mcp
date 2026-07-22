@@ -29,7 +29,7 @@ Supported operations:
   - Labels (list, create, edit, delete)
   - Milestones (list, create, edit, delete)
   - Releases (list, create, edit, delete, manage attachments)
-  - Pull requests (list, view, reviews, review comments, reply to reviews)
+  - Pull requests (list, view, merge, reviews, review comments, reply to reviews)
   - Repository search and listing (including a user's repositories)
   - Wiki pages (create, edit, delete, list)
   - Forgejo Actions (list tasks, list/get workflow runs, list run jobs, fetch job logs)

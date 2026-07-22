@@ -1,0 +1,88 @@
+name: Release
+
+# On every v* tag: run the test suite, cross-compile binaries for
+# linux/darwin/windows (amd64 + arm64) with SHA-256 checksums, and publish a
+# GitHub Release whose notes are extracted from CHANGELOG.md.
+#
+# Multi-arch container images are published separately to GHCR by
+# docker-publish.yml (also triggered by v* tags).
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build binaries & publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ">=1.24"
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Resolve version
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "number=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp version
+        run: sed -i "s/dev-test/${GITHUB_REF_NAME}/" types/version.go
+
+      - name: Build release binaries
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          matrix="linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64"
+          for target in $matrix; do
+            goos="${target%/*}"
+            goarch="${target#*/}"
+            out="forgejo-mcp_${GITHUB_REF_NAME}_${goos}_${goarch}"
+            if [ "$goos" = "windows" ]; then
+              out="${out}.exe"
+            fi
+            echo "Building $out"
+            CGO_ENABLED=0 GOOS="$goos" GOARCH="$goarch" \
+              go build -trimpath -ldflags="-s -w" -o "dist/${out}" .
+            ( cd dist && sha256sum "${out}" > "${out}.sha256" )
+          done
+          ls -la dist
+
+      - name: Extract changelog notes
+        id: notes
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.number }}"
+          notes_file="dist/RELEASE_NOTES.md"
+          # Pull the section for this version out of CHANGELOG.md: everything
+          # between the "## [VERSION]" heading and the next "## [" heading.
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" { grab=1; next }
+            grab && /^## \[/ { exit }
+            grab { print }
+          ' CHANGELOG.md > "$notes_file"
+          if [ ! -s "$notes_file" ]; then
+            echo "Release ${GITHUB_REF_NAME}" > "$notes_file"
+          fi
+          echo "Extracted notes:"
+          cat "$notes_file"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.version.outputs.tag }}
+          body_path: dist/RELEASE_NOTES.md
+          files: |
+            dist/forgejo-mcp_*

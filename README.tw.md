@@ -40,6 +40,7 @@
 
 ### Pull Request
 - 查看、列出、建立 Pull Request
+- 合併 Pull Request（merge/rebase/rebase-merge/squash，可選在檢查通過後自動合併）並查詢合併狀態
 - 列出 Pull Request 審查與行內審查留言
 - 建立 Pull Request 審查並回覆審查留言
 
