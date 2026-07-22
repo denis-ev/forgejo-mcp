@@ -38,6 +38,8 @@ Then this tool is made for you!
 - Read file contents and list directory entries at any ref (`get_file_contents`)
 - List commits, optionally filtered by branch/SHA or path (`list_commits`)
 - View a single commit's metadata and stats, optionally with its diff (`get_commit`)
+- List and create branches (`list_branches`, `create_branch`)
+- List and create tags (`list_tags`, `create_tag`)
 
 ### Release Management
 - Manage version releases

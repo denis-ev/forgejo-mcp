@@ -101,6 +101,10 @@ func registerCommands(s *mcp.Server, cl *tools.Client) {
 	tools.Register(s, &repo.GetFileContentsImpl{Client: cl})
 	tools.Register(s, &repo.ListCommitsImpl{Client: cl})
 	tools.Register(s, &repo.GetCommitImpl{Client: cl})
+	tools.Register(s, &repo.ListBranchesImpl{Client: cl})
+	tools.Register(s, &repo.CreateBranchImpl{Client: cl})
+	tools.Register(s, &repo.ListTagsImpl{Client: cl})
+	tools.Register(s, &repo.CreateTagImpl{Client: cl})
 
 	// Wiki tools
 	tools.Register(s, &wiki.GetWikiPageImpl{Client: cl})

@@ -12,6 +12,19 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-22
+
+### Added
+
+- **`list_branches`** tool — list a repository's branches with protection
+  status and each branch's tip commit, with pagination.
+- **`create_branch`** tool — create a new branch, optionally from a specified
+  source branch.
+- **`list_tags`** tool — list a repository's git tags with the tagged commit
+  and any message, with pagination.
+- **`create_tag`** tool — create a new git tag, optionally targeting a specific
+  commit/branch and including an annotation message.
+
 ## [0.3.0] - 2026-07-22
 
 ### Added
