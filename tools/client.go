@@ -150,6 +150,54 @@ func (c *Client) sendSimpleRequest(method, endpoint string, paramObj, respObj an
 	return nil
 }
 
+// sendRawRequest performs a JSON GET/DELETE/POST request but returns the raw
+// response body instead of decoding it as JSON. This is needed for endpoints
+// that return plaintext (e.g. Actions job logs) rather than a JSON payload.
+func (c *Client) sendRawRequest(method, endpoint string, paramObj any) ([]byte, error) {
+	u, err := url.Parse(c.base + endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL: %w", err)
+	}
+
+	var body io.Reader
+	if paramObj != nil {
+		jsonData, err := json.Marshal(paramObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal request: %w", err)
+		}
+		body = bytes.NewReader(jsonData)
+	}
+
+	req, err := http.NewRequest(method, u.String(), body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	if paramObj != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if c.token != "" {
+		req.Header.Set("Authorization", "token "+c.token)
+	}
+
+	resp, err := c.cl.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode >= 400 {
+		return nil, &httpStatusError{code: resp.StatusCode, status: resp.Status}
+	}
+
+	return data, nil
+}
+
 // sendUploadRequest handles file upload requests (multipart/form-data)
 // endpoint: API endpoint path (fixed to use POST)
 // filename: upload file name

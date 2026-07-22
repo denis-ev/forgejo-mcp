@@ -4,6 +4,12 @@
 
 一個 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 伺服器，讓你可以透過 AI 助手（如 Claude、Gemini、Copilot）來管理 Gitea/Forgejo 倉庫。
 
+## 🍴 關於此 Fork
+
+這是 [raohwork/forgejo-mcp](https://github.com/raohwork/forgejo-mcp) 的一個持續維護的 fork。截至 **2026-07-22**，上游倉庫已有一段時間沒有維護者活動（包含多個修正錯誤的社群 PR 尚未被審查）。此 fork 的目的是持續推進這個專案：合併經過審核的社群貢獻、修正日常使用中發現的錯誤，並跟進較新的 Forgejo API（此 fork 開發並測試於 **Forgejo v16.0.1**）。
+
+如果上游恢復活躍，這裡的變更未來可能會回饋上游；在那之前，請將此 fork 視為主要維護分支。
+
 ## 🚀 為什麼需要 Forgejo MCP Server？
 
 如果你想要：
@@ -32,10 +38,19 @@
 - 管理版本發布
 - 管理發布附件
 
+### Pull Request
+- 查看、列出、建立 Pull Request
+- 列出 Pull Request 審查與行內審查留言
+- 建立 Pull Request 審查並回覆審查留言
+
 ### 其他功能
-- 查看 Pull Request
-- 管理 Wiki 頁面
-- 查看 Forgejo/Gitea Actions 任務
+- 管理 Wiki 頁面（建立、編輯、刪除、列表；同時支援頁面標題與 slug）
+- 列出使用者自己／其他使用者的倉庫
+- Forgejo/Gitea Actions：
+  - 查看舊版 Actions 任務（`list_action_tasks`）
+  - 列出並檢視工作流程執行紀錄（`list_action_runs`、`get_action_run`）
+  - 列出執行紀錄中的工作（`list_action_run_jobs`）
+  - 取得工作的原始執行紀錄（含失敗輸出）（`get_action_job_logs`；需要 Forgejo 版本支援此端點，已於 v16.0.1+ 驗證）
 
 ## 📦 安裝
 
@@ -45,19 +60,23 @@
 
 對於 SSE/Streamable HTTP 模式，你應該在設定 MCP 客戶端之前先執行 `forgejo-mcp` 作為伺服器。
 
+此 fork 發布的映像檔存放在 GitHub Container Registry（支援多架構：`linux/amd64`、`linux/arm64`）：
+
 ```bash
-docker run -p 8080:8080 -e FORGEJOMCP_TOKEN="my-forgejo-api-token" ronmi/forgejo-mcp http --address :8080 --server https://git.example.com
+docker run -p 8080:8080 -e FORGEJOMCP_TOKEN="my-forgejo-api-token" ghcr.io/denis-ev/forgejo-mcp http --address :8080 --server https://git.example.com
 ```
+
+可用標籤：`latest` 與 `vX.Y.Z`（正式發布版本）、`master`（預設分支最新提交）。
 
 ### 方法二：從原始碼安裝
 
 ```bash
-go install github.com/raohwork/forgejo-mcp@latest
+go install github.com/denis-ev/forgejo-mcp@latest
 ```
 
 ### 方法三：下載預編譯版本
 
-從 [Releases 頁面](https://github.com/raohwork/forgejo-mcp/releases) 下載適合你作業系統的版本。
+從 [Releases 頁面](https://github.com/denis-ev/forgejo-mcp/releases) 下載適合你作業系統的版本。
 
 ## 🖥️ 使用方式
 
@@ -92,7 +111,7 @@ export FORGEJOMCP_TOKEN="your_access_token"
       "command": "docker",
       "args": [
         "--rm",
-        "ronmi/forgejo-mcp",
+        "ghcr.io/denis-ev/forgejo-mcp",
         "stdio",
         "--server", "https://your-forgejo-instance.com",
         "--token", "your_access_token"
@@ -131,7 +150,7 @@ export FORGEJOMCP_TOKEN="your_access_token"
 /path/to/forgejo-mcp http --address :8080 --server https://your-forgejo-instance.com
 
 # 使用 docker
-docker run -p 8080:8080 -d --rm ronmi/forgejo-mcp http --address :8080 --server https://your-forgejo-instance.com
+docker run -p 8080:8080 -d --rm ghcr.io/denis-ev/forgejo-mcp http --address :8080 --server https://your-forgejo-instance.com
 ```
 
 伺服器支援兩種運作模式：
@@ -201,8 +220,8 @@ docker run -p 8080:8080 -d --rm ronmi/forgejo-mcp http --address :8080 --server 
 
 ## 🤝 支援與貢獻
 
-- **問題回報**：[GitHub Issues](https://github.com/raohwork/forgejo-mcp/issues)
-- **貢獻程式碼**：歡迎提交 Pull Request！
+- **問題回報**：[GitHub Issues](https://github.com/denis-ev/forgejo-mcp/issues)（此 fork）或 [上游 Issues](https://github.com/raohwork/forgejo-mcp/issues)
+- **貢獻程式碼**：歡迎在此處或上游提交 Pull Request！
 
 ## 📄 授權
 
