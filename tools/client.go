@@ -9,6 +9,7 @@ package tools
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -20,6 +21,25 @@ import (
 )
 
 var UserAgent = "Forgejo-MCP/" + types.VERSION
+
+// httpStatusError wraps an HTTP error response so callers can inspect the
+// status code (e.g. to detect 404 and retry with a different URL form)
+// without resorting to string matching on the error message.
+type httpStatusError struct {
+	code   int
+	status string
+}
+
+func (e *httpStatusError) Error() string {
+	return fmt.Sprintf("HTTP %d: %s", e.code, e.status)
+}
+
+// isNotFoundErr reports whether err represents an HTTP 404 response returned
+// by sendSimpleRequest/sendUploadRequest.
+func isNotFoundErr(err error) bool {
+	var hsErr *httpStatusError
+	return errors.As(err, &hsErr) && hsErr.code == http.StatusNotFound
+}
 
 // Client wraps the Forgejo SDK client with additional functionality for
 // unsupported API endpoints. It provides methods for JSON requests and
@@ -119,7 +139,7 @@ func (c *Client) sendSimpleRequest(method, endpoint string, paramObj, respObj an
 
 	// Check HTTP status
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, resp.Status)
+		return &httpStatusError{code: resp.StatusCode, status: resp.Status}
 	}
 
 	// Parse JSON response
