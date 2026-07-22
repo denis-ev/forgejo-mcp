@@ -4,6 +4,12 @@
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that enables you to manage Gitea/Forgejo repositories through AI assistants like Claude, Gemini, and Copilot.
 
+## 🍴 About This Fork
+
+This is an actively maintained fork of [raohwork/forgejo-mcp](https://github.com/raohwork/forgejo-mcp). As of **2026-07-22**, the upstream repository has had no maintainer activity for an extended period (multiple community pull requests, including bug fixes, sitting unreviewed). This fork exists to keep the project moving: merging in vetted community contributions, fixing bugs found in day-to-day use, and tracking newer Forgejo API surface (this fork is developed and tested against **Forgejo v16.0.1**).
+
+If upstream becomes active again, changes here may be proposed back; until then, treat this fork as the actively developed line.
+
 ## 🚀 Why Use Forgejo MCP Server?
 
 If you want to:
@@ -32,10 +38,19 @@ Then this tool is made for you!
 - Manage version releases
 - Manage release attachments
 
+### Pull Requests
+- View, list, and create Pull Requests
+- List Pull Request reviews and inline review comments
+- Create Pull Request reviews and reply to review comments
+
 ### Other Features
-- View Pull Requests
-- Manage Wiki pages
-- View Forgejo/Gitea Actions tasks
+- Manage Wiki pages (create, edit, delete, list; handles both page titles and slugs)
+- List a user's own/other users' repositories
+- Forgejo/Gitea Actions:
+  - View legacy Actions tasks (`list_action_tasks`)
+  - List and inspect workflow runs (`list_action_runs`, `get_action_run`)
+  - List jobs within a run (`list_action_run_jobs`)
+  - Fetch raw job execution logs, including failure output (`get_action_job_logs`; requires a Forgejo version that exposes this endpoint, verified on v16.0.1+)
 
 ## 📦 Installation
 
@@ -45,19 +60,23 @@ For STDIO mode, you can skip to **Usage** section.
 
 For SSE/Streamable HTTP mode, you should run `forgejo-mcp` as server before configuring your MCP client.
 
+Images for this fork are published to GitHub Container Registry (multi-arch: `linux/amd64`, `linux/arm64`):
+
 ```bash
-docker run -p 8080:8080 -e FORGEJOMCP_TOKEN="my-forgejo-api-token" ronmi/forgejo-mcp http --address :8080 --server https://git.example.com
+docker run -p 8080:8080 -e FORGEJOMCP_TOKEN="my-forgejo-api-token" ghcr.io/denis-ev/forgejo-mcp http --address :8080 --server https://git.example.com
 ```
+
+Available tags: `latest` and `vX.Y.Z` (tagged releases), `master` (latest commit on the default branch).
 
 ### Method 2: Install from source
 
 ```bash
-go install github.com/raohwork/forgejo-mcp@latest
+go install github.com/denis-ev/forgejo-mcp@latest
 ```
 
 ### Method 3: Download Pre-compiled Binaries
 
-Download the appropriate version for your operating system from the [Releases page](https://github.com/raohwork/forgejo-mcp/releases).
+Download the appropriate version for your operating system from the [Releases page](https://github.com/denis-ev/forgejo-mcp/releases).
 
 ## 🖥️ Usage
 
@@ -92,7 +111,7 @@ Using docker:
       "command": "docker",
       "args": [
         "--rm",
-        "ronmi/forgejo-mcp",
+        "ghcr.io/denis-ev/forgejo-mcp",
         "stdio",
         "--server", "https://your-forgejo-instance.com",
         "--token", "your_access_token"
@@ -131,7 +150,7 @@ Run the following command to start the server:
 /path/to/forgejo-mcp http --address :8080 --server https://your-forgejo-instance.com
 
 # with docker
-docker run -p 8080:8080 -d --rm ronmi/forgejo-mcp http --address :8080 --server https://your-forgejo-instance.com
+docker run -p 8080:8080 -d --rm ghcr.io/denis-ev/forgejo-mcp http --address :8080 --server https://your-forgejo-instance.com
 ```
 
 The server supports two operational modes:
@@ -199,8 +218,8 @@ After configuration, you can use natural language in your AI assistant to manage
 
 ## 🤝 Support & Contributing
 
-- **Bug Reports**: [GitHub Issues](https://github.com/raohwork/forgejo-mcp/issues)
-- **Code Contributions**: Pull Requests are welcome!
+- **Bug Reports**: [GitHub Issues](https://github.com/denis-ev/forgejo-mcp/issues) (this fork) or [upstream Issues](https://github.com/raohwork/forgejo-mcp/issues)
+- **Code Contributions**: Pull Requests are welcome, either here or upstream!
 
 ## 📄 License
 
