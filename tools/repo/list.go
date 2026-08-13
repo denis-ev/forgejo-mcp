@@ -51,7 +51,7 @@ func (SearchRepositoriesImpl) Definition() *mcp.Tool {
 	return &mcp.Tool{
 		Name:        "search_repositories",
 		Title:       "Search Repositories",
-		Description: "Search for repositories across the Forgejo instance. Returns repository information including name, description, and metadata.",
+		Description: "Search for repositories across the Forgejo instance. Returns repository information including name, description, metadata, and clone URLs (HTTPS and SSH).",
 		Annotations: &mcp.ToolAnnotations{
 			ReadOnlyHint:   true,
 			IdempotentHint: true,
@@ -181,7 +181,7 @@ func (ListMyRepositoriesImpl) Definition() *mcp.Tool {
 	return &mcp.Tool{
 		Name:        "list_my_repositories",
 		Title:       "List My Repositories",
-		Description: "List repositories the authenticated user has access to. Returns repository information including name, description, and metadata.",
+		Description: "List repositories the authenticated user has access to. Returns repository information including name, description, metadata, and clone URLs (HTTPS and SSH).",
 		Annotations: &mcp.ToolAnnotations{
 			ReadOnlyHint:   true,
 			IdempotentHint: true,
@@ -277,7 +277,7 @@ func (ListUserRepositoriesImpl) Definition() *mcp.Tool {
 	return &mcp.Tool{
 		Name:        "list_user_repositories",
 		Title:       "List User Repositories",
-		Description: "List repositories owned by a specific user. Returns repository information including name, description, and metadata.",
+		Description: "List repositories owned by a specific user. Returns repository information including name, description, metadata, and clone URLs (HTTPS and SSH).",
 		Annotations: &mcp.ToolAnnotations{
 			ReadOnlyHint:   true,
 			IdempotentHint: true,
@@ -377,7 +377,7 @@ func (ListOrgRepositoriesImpl) Definition() *mcp.Tool {
 	return &mcp.Tool{
 		Name:        "list_org_repositories",
 		Title:       "List Organization Repositories",
-		Description: "List repositories owned by a specific organization. Returns repository information including name, description, and metadata.",
+		Description: "List repositories owned by a specific organization. Returns repository information including name, description, metadata, and clone URLs (HTTPS and SSH).",
 		Annotations: &mcp.ToolAnnotations{
 			ReadOnlyHint:   true,
 			IdempotentHint: true,
@@ -476,7 +476,7 @@ func (GetRepositoryImpl) Definition() *mcp.Tool {
 	return &mcp.Tool{
 		Name:        "get_repository",
 		Title:       "Get Repository Information",
-		Description: "Get detailed information about a specific repository, including description, stats, permissions, and metadata.",
+		Description: "Get detailed information about a specific repository, including description, stats, permissions, metadata, default branch, and clone URLs (HTTPS and SSH).",
 		Annotations: &mcp.ToolAnnotations{
 			ReadOnlyHint:   true,
 			IdempotentHint: true,

@@ -32,7 +32,7 @@ Then this tool is made for you!
 ### Project Organization
 - Manage labels (create, edit, delete)
 - Manage milestones (create, edit, delete)
-- Repository search and listing
+- Repository search and listing (results include clone URLs for HTTPS and SSH, plus the default branch)
 
 ### Repository Browsing
 - Read file contents and list directory entries at any ref (`get_file_contents`)
@@ -41,6 +41,7 @@ Then this tool is made for you!
 - List and create branches (`list_branches`, `create_branch`)
 - List and create tags (`list_tags`, `create_tag`)
 - Read a commit's combined CI status and set commit statuses (`get_commit_status`, `create_commit_status`)
+- Get the rolled-up CI state for a PR, branch, tag, or commit in one call, merging commit statuses and Actions jobs (`get_ci_status`)
 
 ### Release Management
 - Manage version releases

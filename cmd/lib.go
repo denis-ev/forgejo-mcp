@@ -107,6 +107,7 @@ func registerCommands(s *mcp.Server, cl *tools.Client) {
 	tools.Register(s, &repo.CreateTagImpl{Client: cl})
 	tools.Register(s, &repo.GetCommitStatusImpl{Client: cl})
 	tools.Register(s, &repo.CreateCommitStatusImpl{Client: cl})
+	tools.Register(s, &repo.GetCIStatusImpl{Client: cl})
 
 	// Wiki tools
 	tools.Register(s, &wiki.GetWikiPageImpl{Client: cl})

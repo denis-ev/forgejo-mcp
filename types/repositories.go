@@ -45,6 +45,20 @@ func (r *Repository) ToMarkdown() string {
 		markdown += r.Description + "\n"
 	}
 	markdown += fmt.Sprintf("Stars: %d | Forks: %d | Issues: %d | PRs: %d\n", r.Stars, r.Forks, r.OpenIssues, r.OpenPulls)
+	if r.DefaultBranch != "" {
+		markdown += "Default branch: " + r.DefaultBranch + "\n"
+	}
+	// Clone URLs come straight from the API. They must never be rebuilt from
+	// the server base URL: self-hosted Forgejo commonly serves SSH on a
+	// different host or port than the web UI, and may live under a subpath.
+	// They must also never have a token interpolated into them, or the
+	// credential would leak into transcripts, shell history and CI logs.
+	if r.CloneURL != "" {
+		markdown += "Clone (HTTPS): " + r.CloneURL + "\n"
+	}
+	if r.SSHURL != "" {
+		markdown += "Clone (SSH): " + r.SSHURL + "\n"
+	}
 	if r.HTMLURL != "" {
 		markdown += "[View Repository](" + r.HTMLURL + ")"
 	}
