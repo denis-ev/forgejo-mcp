@@ -12,6 +12,19 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+### Fixed
+
+- **`list_action_tasks`** now forwards `page` and `limit` to the Forgejo API.
+  The tool advertised pagination in its schema but dropped both parameters when
+  building the request, so every call returned the repository's full task list
+  regardless of the requested limit. On repositories with hundreds of tasks the
+  unbounded response could blow past client-side output limits and fail the
+  call outright. `MyListActionTasks` now takes a `MyListActionTasksOptions`
+  struct; omitting the fields preserves the previous behaviour of letting the
+  server pick its default page size. The tool output also reports
+  `Showing N of M action tasks` so a truncated page is no longer mistaken for
+  the complete set. ([#4](https://github.com/denis-ev/forgejo-mcp/issues/4))
+
 ## [0.5.0] - 2026-07-22
 
 ### Added

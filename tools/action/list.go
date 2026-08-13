@@ -84,8 +84,14 @@ func (impl ListActionTasksImpl) Handler() mcp.ToolHandlerFor[ListActionTasksPara
 	return func(ctx context.Context, req *mcp.CallToolRequest, args ListActionTasksParams) (*mcp.CallToolResult, any, error) {
 		p := args
 
-		// Call custom client method
-		response, err := impl.Client.MyListActionTasks(p.Owner, p.Repo)
+		// Call custom client method, forwarding pagination so the caller's
+		// requested page size is honoured instead of returning every task.
+		opt := tools.MyListActionTasksOptions{
+			Page:  p.Page,
+			Limit: p.Limit,
+		}
+
+		response, err := impl.Client.MyListActionTasks(p.Owner, p.Repo, opt)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to list action tasks: %w", err)
 		}
@@ -100,8 +106,8 @@ func (impl ListActionTasksImpl) Handler() mcp.ToolHandlerFor[ListActionTasksPara
 				MyActionTaskResponse: response,
 			}
 
-			content = fmt.Sprintf("Found %d action tasks\n\n%s",
-				response.TotalCount, taskList.ToMarkdown())
+			content = fmt.Sprintf("Showing %d of %d action tasks\n\n%s",
+				len(response.WorkflowRuns), response.TotalCount, taskList.ToMarkdown())
 		}
 
 		return &mcp.CallToolResult{
