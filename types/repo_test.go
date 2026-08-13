@@ -32,9 +32,15 @@ func TestRepository_ToMarkdown(t *testing.T) {
 					OpenIssues:  3,
 					OpenPulls:   1,
 					HTMLURL:     "https://git.example.com/owner/repo-name",
+					// Deliberately non-default SSH port and a distinct SSH
+					// host: reconstructing these from the web URL would be
+					// wrong, so they must be echoed from the API verbatim.
+					CloneURL:      "https://git.example.com/owner/repo-name.git",
+					SSHURL:        "ssh://git@ssh.example.com:2222/owner/repo-name.git",
+					DefaultBranch: "main",
 				},
 			},
-			required: []string{"owner/repo-name", "PRIVATE", "FORK", "A sample repository for testing purposes", "Stars: 42", "Forks: 7", "Issues: 3", "PRs: 1", "View Repository", "https://git.example.com/owner/repo-name"},
+			required: []string{"owner/repo-name", "PRIVATE", "FORK", "A sample repository for testing purposes", "Stars: 42", "Forks: 7", "Issues: 3", "PRs: 1", "View Repository", "https://git.example.com/owner/repo-name", "Clone (HTTPS): https://git.example.com/owner/repo-name.git", "Clone (SSH): ssh://git@ssh.example.com:2222/owner/repo-name.git", "Default branch: main"},
 		},
 		{
 			name:     "nil repository",

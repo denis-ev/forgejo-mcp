@@ -12,6 +12,29 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+### Added
+
+- **`get_ci_status`** tool — answer "is this green?" in a single call for a
+  pull request, branch, tag, or commit. Merges commit statuses and Forgejo
+  Actions jobs into one normalized check list, rolls them up to a single
+  state, and reports the `run_id`/`job_id` of failing Actions jobs so their
+  logs can be fetched directly with `get_action_job_logs`. Previously this
+  required 5–6 correlated calls across two unrelated APIs.
+  ([#8](https://github.com/denis-ev/forgejo-mcp/issues/8))
+- Repository-returning tools (`search_repositories`, `list_my_repositories`,
+  `list_user_repositories`, `list_org_repositories`, `get_repository`) now
+  include **clone URLs** (HTTPS and SSH) and the **default branch**. These are
+  echoed verbatim from the API rather than reconstructed from the server base
+  URL, so they remain correct on instances with a separate SSH host or a
+  non-default SSH port.
+  ([#8](https://github.com/denis-ev/forgejo-mcp/issues/8))
+
+### Security
+
+- Clone URLs are emitted without credentials. Tokens are never interpolated
+  into rendered URLs, which would otherwise leak them into agent transcripts,
+  shell history, and CI logs. A regression test enforces this.
+
 ## [0.6.1] - 2026-08-13
 
 ### Fixed
