@@ -22,15 +22,23 @@ type MyListActionTasksOptions struct {
 
 // MyListActionTasks lists Forgejo Actions tasks in a repository.
 //
-// Page and Limit are forwarded to the API as query parameters. Omitting them
-// (zero value) lets the server apply its own default page size; previously
-// they were dropped entirely, which made the endpoint return every task in
-// the repository regardless of the requested limit.
+// Page and Limit are forwarded to the API as query parameters. Omitting both
+// (zero value) lets the server apply its own default page size.
+//
+// Forgejo only applies "limit" when "page" is present: a request carrying
+// limit alone is served as an unpaginated listing and returns every task in
+// the repository. Whenever a limit is requested we therefore send page=1 by
+// default, so that "give me N tasks" is honoured without the caller having to
+// know about this coupling.
 // GET /repos/{owner}/{repo}/actions/tasks
 func (c *Client) MyListActionTasks(owner, repo string, opt MyListActionTasksOptions) (*types.MyActionTaskResponse, error) {
 	q := url.Values{}
-	if opt.Page > 0 {
-		q.Set("page", fmt.Sprintf("%d", opt.Page))
+	page := opt.Page
+	if page <= 0 && opt.Limit > 0 {
+		page = 1
+	}
+	if page > 0 {
+		q.Set("page", fmt.Sprintf("%d", page))
 	}
 	if opt.Limit > 0 {
 		q.Set("limit", fmt.Sprintf("%d", opt.Limit))

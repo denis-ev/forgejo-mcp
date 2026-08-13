@@ -29,8 +29,14 @@ type MyListActionRunsOptions struct {
 // GET /repos/{owner}/{repo}/actions/runs
 func (c *Client) MyListActionRuns(owner, repo string, opt MyListActionRunsOptions) (*types.MyActionRunListResponse, error) {
 	q := url.Values{}
-	if opt.Page > 0 {
-		q.Set("page", fmt.Sprintf("%d", opt.Page))
+	// Forgejo ignores "limit" unless "page" is also set; see the note on
+	// MyListActionTasks. Default to the first page when a limit is requested.
+	page := opt.Page
+	if page <= 0 && opt.Limit > 0 {
+		page = 1
+	}
+	if page > 0 {
+		q.Set("page", fmt.Sprintf("%d", page))
 	}
 	if opt.Limit > 0 {
 		q.Set("limit", fmt.Sprintf("%d", opt.Limit))

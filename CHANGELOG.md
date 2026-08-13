@@ -12,6 +12,17 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+### Fixed
+
+- **`list_action_tasks` and `list_action_runs`** now send `page=1` whenever a
+  `limit` is given without an explicit page. Forgejo only applies `limit` when
+  `page` is also present — `?limit=5` alone is served as an unpaginated
+  listing and returns the entire history — so the 0.6.0 fix for
+  [#4](https://github.com/denis-ev/forgejo-mcp/issues/4) still returned every
+  task for the common `{limit: N}` call. Verified against Forgejo 15.0.3:
+  `?limit=5` returned 691 tasks, `?limit=5&page=1` returned 5. The same
+  latent bug was present in `list_action_runs` and is fixed alongside it.
+
 ## [0.6.0] - 2026-08-13
 
 ### Added
