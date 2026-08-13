@@ -12,6 +12,19 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+### Added
+
+- Validation errors for unknown input fields now name the **accepted** fields
+  and, where possible, suggest a specific replacement, instead of only naming
+  the rejected one. Calling `merge_pull_request` with the REST API's `do`
+  field previously failed with `unmarshaling: json: unknown field "do"`; it
+  now reports `unknown field "do" for merge_pull_request — did you mean
+  "style"?; expected one of: index, owner, repo, style, title`. Suggestions
+  come from a table of known REST-API aliases plus a nearest-match fallback,
+  and are only emitted when the suggested field actually exists on that tool.
+  Applied uniformly to every tool via server middleware rather than per-tool
+  code. ([#5](https://github.com/denis-ev/forgejo-mcp/issues/5))
+
 ### Fixed
 
 - **`list_action_tasks`** now forwards `page` and `limit` to the Forgejo API.
