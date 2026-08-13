@@ -12,6 +12,8 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-13
+
 ### Added
 
 - **`get_ci_status`** tool — answer "is this green?" in a single call for a
