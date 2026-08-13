@@ -12,6 +12,8 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-13
+
 ### Fixed
 
 - **`list_action_tasks` and `list_action_runs`** now send `page=1` whenever a
