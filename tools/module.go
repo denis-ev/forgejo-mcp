@@ -29,5 +29,9 @@ type ToolImpl[In, Out any] interface {
 // It retrieves the tool's definition and handler through the ToolImpl interface
 // and adds them to the server's tool registry.
 func Register[I, O any](s *mcp.Server, i ToolImpl[I, O]) {
-	mcp.AddTool(s, i.Definition(), i.Handler())
+	def := i.Definition()
+	// Index the accepted field names so validation failures can report them;
+	// see ValidationErrorMiddleware.
+	registerSchemaFields(def)
+	mcp.AddTool(s, def, i.Handler())
 }

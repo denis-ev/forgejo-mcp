@@ -131,6 +131,10 @@ func createServer(cl *tools.Client) *mcp.Server {
 		PageSize:     50,
 		Instructions: "An MCP server to interact with repositories on a Forgejo/Gitea instance.",
 	})
+	// Enrich schema validation errors so a rejected field name also reports
+	// the accepted ones. Must be added before any request is served.
+	server.AddReceivingMiddleware(tools.ValidationErrorMiddleware())
+
 	registerCommands(server, cl)
 
 	return server
