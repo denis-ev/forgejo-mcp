@@ -366,7 +366,7 @@ func TestCustomClient_Integral(t *testing.T) {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	resp, err := cl.MyListActionTasks(arr[0], arr[1])
+	resp, err := cl.MyListActionTasks(arr[0], arr[1], MyListActionTasksOptions{})
 	if err != nil {
 		t.Fatalf("Failed to list action tasks: %v", err)
 	}

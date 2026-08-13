@@ -8,18 +8,41 @@ package tools
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/raohwork/forgejo-mcp/types"
 )
 
-// MyListActionTasks lists all Forgejo Actions tasks in a repository.
+// MyListActionTasksOptions holds optional pagination parameters for listing
+// action tasks. The zero value requests the server default page size.
+type MyListActionTasksOptions struct {
+	Page  int
+	Limit int
+}
+
+// MyListActionTasks lists Forgejo Actions tasks in a repository.
+//
+// Page and Limit are forwarded to the API as query parameters. Omitting them
+// (zero value) lets the server apply its own default page size; previously
+// they were dropped entirely, which made the endpoint return every task in
+// the repository regardless of the requested limit.
 // GET /repos/{owner}/{repo}/actions/tasks
-func (c *Client) MyListActionTasks(owner, repo string) (*types.MyActionTaskResponse, error) {
+func (c *Client) MyListActionTasks(owner, repo string, opt MyListActionTasksOptions) (*types.MyActionTaskResponse, error) {
+	q := url.Values{}
+	if opt.Page > 0 {
+		q.Set("page", fmt.Sprintf("%d", opt.Page))
+	}
+	if opt.Limit > 0 {
+		q.Set("limit", fmt.Sprintf("%d", opt.Limit))
+	}
+
 	endpoint := fmt.Sprintf("/api/v1/repos/%s/%s/actions/tasks", owner, repo)
+	if enc := q.Encode(); enc != "" {
+		endpoint += "?" + enc
+	}
 
 	var result types.MyActionTaskResponse
-	err := c.sendSimpleRequest("GET", endpoint, nil, &result)
-	if err != nil {
+	if err := c.sendSimpleRequest("GET", endpoint, nil, &result); err != nil {
 		return nil, err
 	}
 
