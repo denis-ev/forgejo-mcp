@@ -56,6 +56,29 @@ func TestClient_MyListActionRuns(t *testing.T) {
 		}
 	})
 
+	t.Run("limit_only_defaults_page_1", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			q := r.URL.Query()
+			if q.Get("limit") != "5" {
+				t.Errorf("expected limit=5, got %s", q.Get("limit"))
+			}
+			if q.Get("page") != "1" {
+				t.Errorf("expected page=1 alongside limit, got %q", q.Get("page"))
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"total_count": 0, "workflow_runs": []any{}})
+		}))
+		defer server.Close()
+
+		client, err := NewClient(server.URL, "test-token", forgejo_version_to_test, server.Client())
+		if err != nil {
+			t.Fatalf("failed to create client: %v", err)
+		}
+		if _, err := client.MyListActionRuns("owner", "repo", MyListActionRunsOptions{Limit: 5}); err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+	})
+
 	t.Run("no_filters_omits_query", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.RawQuery != "" {

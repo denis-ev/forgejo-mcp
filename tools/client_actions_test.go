@@ -53,14 +53,16 @@ func TestClient_MyListActionTasks(t *testing.T) {
 		}
 	})
 
-	t.Run("limit_only", func(t *testing.T) {
+	// Forgejo ignores "limit" unless "page" is present, so a limit-only
+	// request must still pin page=1 or the server returns everything.
+	t.Run("limit_only_defaults_page_1", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			q := r.URL.Query()
 			if q.Get("limit") != "5" {
 				t.Errorf("expected limit=5, got %s", q.Get("limit"))
 			}
-			if q.Has("page") {
-				t.Errorf("expected no page param, got %s", q.Get("page"))
+			if q.Get("page") != "1" {
+				t.Errorf("expected page=1 alongside limit, got %q", q.Get("page"))
 			}
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]any{"total_count": 0, "workflow_runs": []any{}})
