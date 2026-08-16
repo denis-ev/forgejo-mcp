@@ -8,6 +8,14 @@
 *_token
 *.credentials
 
+# Local Forgejo test instance (never commit: contains JWT keys, DB, sessions)
+fj11/
+forgejo.db
+*.pem
+
+# Upstream maintainer's personal tooling
+.rmi-work/
+
 # Go build output
 /forgejo-mcp
 /dist/
