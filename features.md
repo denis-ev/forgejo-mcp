@@ -157,6 +157,17 @@ Labels available for a specific repository
 - **Get Specific Repository Information** 🟢
   - `GET /repos/{owner}/{repo}`
   - SDK: `GetRepo(owner, repo string) (*Repository, *Response, error)`
+- **Read and write file contents** 🟡
+  - `GET /repos/{owner}/{repo}/contents/{filepath}`
+  - SDK: `GetContents(owner, repo, ref, filepath string) (*ContentsResponse, *Response, error)`
+  - `POST /repos/{owner}/{repo}/contents/{filepath}`
+  - SDK: `CreateFile(owner, repo, filepath string, opt CreateFileOptions) (*FileResponse, *Response, error)`
+  - `PUT /repos/{owner}/{repo}/contents/{filepath}`
+  - SDK: `UpdateFile(owner, repo, filepath string, opt UpdateFileOptions) (*FileResponse, *Response, error)`
+  - `DELETE /repos/{owner}/{repo}/contents/{filepath}`
+  - SDK: `DeleteFile(owner, repo, filepath string, opt DeleteFileOptions) (*Response, error)`
+  - `POST /repos/{owner}/{repo}/contents` (multi-file atomic commit)
+  - Custom: Not supported by SDK, requires custom HTTP request
 
 ### Forgejo Actions (CI/CD) 🟡
 
