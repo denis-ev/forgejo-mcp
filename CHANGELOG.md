@@ -12,6 +12,8 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-17
+
 ### Added
 
 - **`help`** tool — zero-context onboarding for agents. Called with no
