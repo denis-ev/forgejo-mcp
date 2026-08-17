@@ -12,6 +12,21 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+### Added
+
+- **`help`** tool — zero-context onboarding for agents. Called with no
+  arguments it returns one orientation document: the tool inventory grouped by
+  domain, ID conventions (`index` vs `id` vs `comment_id`, and the label
+  name-versus-ID gotcha), common workflows written as ordered tool sequences,
+  pagination rules, version-gated tools, and known gaps. Called with a
+  `topic` it drills into one domain or one tool, listing every parameter with
+  its type, requiredness and constraints. The tool is read-only and idempotent
+  and never contacts the Forgejo server.
+  ([#11](https://github.com/denis-ev/forgejo-mcp/issues/11))
+- The tool inventory is **generated from the live tool registry**, so it cannot
+  drift as tools are added: `tools.Register` now indexes each tool definition
+  alongside the domain inferred from its implementation package.
+
 ## [0.7.0] - 2026-08-13
 
 ### Added

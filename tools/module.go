@@ -33,5 +33,8 @@ func Register[I, O any](s *mcp.Server, i ToolImpl[I, O]) {
 	// Index the accepted field names so validation failures can report them;
 	// see ValidationErrorMiddleware.
 	registerSchemaFields(def)
+	// Index the full definition so the help tool can describe the live tool
+	// set instead of a hand-maintained copy of it; see registry.go.
+	registerToolMetadata(def, i)
 	mcp.AddTool(s, def, i.Handler())
 }
