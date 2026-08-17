@@ -9,6 +9,7 @@ package cmd
 import (
 	"github.com/raohwork/forgejo-mcp/tools"
 	"github.com/raohwork/forgejo-mcp/tools/action"
+	"github.com/raohwork/forgejo-mcp/tools/help"
 	"github.com/raohwork/forgejo-mcp/tools/issue"
 	"github.com/raohwork/forgejo-mcp/tools/label"
 	"github.com/raohwork/forgejo-mcp/tools/milestone"
@@ -22,6 +23,10 @@ import (
 )
 
 func registerCommands(s *mcp.Server, cl *tools.Client) {
+	// Help tool. Registered first so it is the first thing a client sees in
+	// the tool list, but it describes whatever ends up registered below.
+	tools.Register(s, &help.HelpImpl{})
+
 	// Issue tools
 	tools.Register(s, &issue.ListRepoIssuesImpl{Client: cl})
 	tools.Register(s, &issue.GetIssueImpl{Client: cl})

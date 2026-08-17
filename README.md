@@ -63,6 +63,11 @@ Then this tool is made for you!
   - List jobs within a run (`list_action_run_jobs`)
   - Fetch raw job execution logs, including failure output (`get_action_job_logs`; requires a Forgejo version that exposes this endpoint, verified on v16.0.1+)
 
+### Agent Onboarding
+- `help` — one call returns the whole orientation document: tool inventory by domain, ID conventions (`index` vs `id`, and the label name-versus-ID gotcha), common workflows as ordered tool sequences, pagination rules, version-gated tools, and known gaps
+- `help` with a `topic` (a domain such as `issues` or `ci`, or a tool name such as `get_ci_status`) drills into one area, listing every parameter with its type, requiredness and constraints
+- The inventory is generated from the live tool registry, so it stays accurate as tools are added
+
 ## 📦 Installation
 
 ### Method 1: Use docker (Recommended)
