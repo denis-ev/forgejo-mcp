@@ -48,9 +48,10 @@ type GetFileContentsImpl struct {
 // Definition describes the `get_file_contents` tool.
 func (GetFileContentsImpl) Definition() *mcp.Tool {
 	return &mcp.Tool{
-		Name:        "get_file_contents",
-		Title:       "Get File Contents",
-		Description: "Read a file's contents, or list a directory's entries, from a repository at an optional ref (branch, tag, or commit SHA). Large files are truncated.",
+		Name:  "get_file_contents",
+		Title: "Get File Contents",
+		Description: "Read a file's contents, or list a directory's entries, from a repository at an optional ref (branch, tag, or commit SHA). Large files are truncated. " +
+			"The reported blob sha is the value update_file and delete_file require.",
 		Annotations: &mcp.ToolAnnotations{
 			ReadOnlyHint:   true,
 			IdempotentHint: true,
@@ -109,7 +110,10 @@ func (impl GetFileContentsImpl) Handler() mcp.ToolHandlerFor[GetFileContentsPara
 
 func renderFile(fc *forgejoContents) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "File: %s (%d bytes, sha %s)\n\n", fc.Path, fc.Size, shortSHA(fc.SHA))
+	// The full sha is printed, not an abbreviation: update_file and delete_file
+	// reject anything but the complete blob sha, so truncating it here would
+	// make every write that follows a read fail.
+	fmt.Fprintf(&b, "File: %s (%d bytes, sha %s)\n\n", fc.Path, fc.Size, fc.SHA)
 
 	if fc.Content == nil {
 		b.WriteString("*(no inline content returned)*")

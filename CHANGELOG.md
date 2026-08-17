@@ -12,6 +12,27 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+### Added
+
+- **Repository file writing** — `create_file`, `update_file`, `delete_file` and
+  `push_files`. This closes the middle of the write path: a branch could be
+  created and a pull request opened, but no commit could be placed on the
+  branch through MCP. Content crosses the boundary as **plain text** and is
+  base64-encoded server-side, since an agent holds text, not base64.
+  `update_file` and `delete_file` require the current blob `sha`, so a
+  concurrent change is rejected rather than silently overwritten, and every
+  write tool accepts `new_branch` to prepare a change off the base branch.
+  `push_files` commits several create/update/delete operations atomically via
+  `POST /repos/{owner}/{repo}/contents`, which the SDK does not expose.
+  ([#13](https://github.com/denis-ev/forgejo-mcp/issues/13))
+
+### Fixed
+
+- `get_file_contents` now reports the **full** blob sha instead of a 10-character
+  abbreviation. The short form made the read-then-write path impossible, because
+  `update_file` and `delete_file` only accept the complete sha.
+  ([#13](https://github.com/denis-ev/forgejo-mcp/issues/13))
+
 ## [0.8.0] - 2026-08-17
 
 ### Added

@@ -35,13 +35,21 @@ Then this tool is made for you!
 - Repository search and listing (results include clone URLs for HTTPS and SSH, plus the default branch)
 
 ### Repository Browsing
-- Read file contents and list directory entries at any ref (`get_file_contents`)
+- Read file contents and list directory entries at any ref (`get_file_contents`; the blob sha it reports is what the write tools require)
 - List commits, optionally filtered by branch/SHA or path (`list_commits`)
 - View a single commit's metadata and stats, optionally with its diff (`get_commit`)
 - List and create branches (`list_branches`, `create_branch`)
 - List and create tags (`list_tags`, `create_tag`)
 - Read a commit's combined CI status and set commit statuses (`get_commit_status`, `create_commit_status`)
 - Get the rolled-up CI state for a PR, branch, tag, or commit in one call, merging commit statuses and Actions jobs (`get_ci_status`)
+
+### Repository Writing
+- Create, replace, and delete files, each as its own commit (`create_file`, `update_file`, `delete_file`)
+- Commit several file operations atomically in one commit (`push_files`)
+- Content is plain text in both directions — the server base64-encodes it for you
+- `update_file` and `delete_file` take the current blob `sha` from `get_file_contents`, so a concurrent change is rejected instead of silently overwritten
+- Every write tool accepts `new_branch` to branch off first, so a change can be prepared for a pull request without touching the base branch
+- Together with `create_branch` and `create_pull_request`, the full branch → commit → PR flow now runs through MCP alone
 
 ### Release Management
 - Manage version releases

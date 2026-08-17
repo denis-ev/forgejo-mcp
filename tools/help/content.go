@@ -56,11 +56,16 @@ var domainOrder = []domain{
 		key:     "repo",
 		topic:   "repository",
 		title:   "Repository",
-		summary: "Search and inspect repositories, browse file contents, commits, branches and tags, and read or write commit statuses.",
+		summary: "Search and inspect repositories, browse and write file contents, commits, branches and tags, and read or write commit statuses.",
 		notes: "`get_ci_status` lives here rather than under actions because it answers the cross-cutting question " +
 			"\"is this ref green?\" by merging commit statuses with Actions jobs.\n\n" +
-			"Repository writing is limited: branches and tags can be created, but file contents cannot yet be written " +
-			"(see the known gaps section of the overview).\n",
+			"File writing takes **plain text**, never base64: `create_file`, `update_file`, `delete_file` and " +
+			"`push_files` encode the content for you.\n\n" +
+			"`update_file` and `delete_file` need the file's current blob `sha`, which `get_file_contents` reports. " +
+			"A stale sha is rejected, so read immediately before writing.\n\n" +
+			"Use `push_files` when one logical change touches several files: it lands them in a single atomic commit. " +
+			"Every write tool also accepts `new_branch`, which branches off `branch` first, so a change can be prepared " +
+			"for a pull request without touching the base branch.\n",
 	},
 	{
 		key:     "label",
@@ -164,6 +169,8 @@ var domainByTopic = func() map[string]domain {
 		"commits":      "repository",
 		"file":         "repository",
 		"files":        "repository",
+		"content":      "repository",
+		"contents":     "repository",
 		"status":       "repository",
 	}
 	for alias, target := range aliases {
@@ -225,8 +232,9 @@ const workflows = "## Common workflows\n\n" +
 	"3. `add_issue_labels` — apply them by ID\n" +
 	"4. `edit_issue` — set milestone, assignees or state\n\n" +
 	"### Land a change\n\n" +
-	"1. `create_branch` — branch off the base\n" +
-	"2. Push commits with git (this server cannot write file contents yet)\n" +
+	"1. `create_branch` — branch off the base (or pass `new_branch` to the first write and skip this step)\n" +
+	"2. `create_file`, `update_file`, `delete_file`, or `push_files` for a multi-file atomic commit — " +
+	"`update_file` and `delete_file` need the blob `sha` from `get_file_contents`\n" +
 	"3. `create_pull_request` — open the PR\n" +
 	"4. `get_ci_status` — wait for green\n" +
 	"5. `merge_pull_request` — the merge method parameter is `style`, not `do` or `merge_method`\n\n"
@@ -253,7 +261,6 @@ const versionGates = "## Version-gated tools\n\n" +
 // stops looking instead of guessing at tool names.
 const knownGaps = "## Known gaps\n\n" +
 	"Not implemented — do not go looking for a tool:\n\n" +
-	"- Writing repository file contents (create/update/delete files)\n" +
 	"- Editing an existing pull request (title, body, base branch)\n" +
 	"- Uploading new issue or release attachments (listing, renaming and deleting work)\n" +
 	"- Deleting branches, and branch protection\n" +
@@ -278,4 +285,12 @@ var toolNotes = map[string]string{
 		"Supply either `pull_number` or `ref`; `pull_number` wins when both are given.",
 	"create_issue_comment": "Also comments on a pull request: pass the PR's `index`. " +
 		"For review feedback use `create_pull_request_review` instead.",
+	"get_file_contents": "The `sha` it reports is the blob sha `update_file` and `delete_file` require. " +
+		"Content is decoded for you, and large files are truncated.",
+	"create_file": "`content` is plain text, not base64. Fails when the path already exists — use `update_file` then.",
+	"update_file": "Replaces the whole file. Needs the current blob `sha` from `get_file_contents`; a stale sha is rejected. " +
+		"`from_path` moves or renames a file in the same commit.",
+	"delete_file": "Needs the current blob `sha` from `get_file_contents`.",
+	"push_files": "One atomic commit for several files. Each entry needs an `operation` " +
+		"(`create`, `update` or `delete`) and a `path`; `update` and `delete` also need the blob `sha`.",
 }
