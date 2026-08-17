@@ -12,6 +12,8 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-08-17
+
 ### Added
 
 - **Repository file writing** — `create_file`, `update_file`, `delete_file` and
