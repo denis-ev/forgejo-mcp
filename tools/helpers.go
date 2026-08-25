@@ -6,6 +6,11 @@
 
 package tools
 
+import (
+	"fmt"
+	"time"
+)
+
 // Helper functions for creating pointers to basic types, primarily for use in
 // constructing jsonschema.Schema objects where optional fields require pointers.
 
@@ -28,4 +33,21 @@ func IntPtr(i int) *int {
 // serialized to JSON, such as in MCP tool definitions.
 func Float64Ptr(f float64) *float64 {
 	return &f
+}
+
+// ParseOptionalRFC3339 parses an optional RFC 3339 timestamp string, such as
+// a `due_date` tool parameter. A nil or empty s means "not provided" and
+// returns (nil, nil). Keeping these parameters as plain strings on the Params
+// struct (rather than a bare time.Time field) means a malformed value is
+// decoded successfully and reported here as a normal tool error, instead of
+// failing during argument unmarshaling with an opaque encoding/json error.
+func ParseOptionalRFC3339(field string, s *string) (*time.Time, error) {
+	if s == nil || *s == "" {
+		return nil, nil
+	}
+	t, err := time.Parse(time.RFC3339, *s)
+	if err != nil {
+		return nil, fmt.Errorf("invalid %s format (expected RFC 3339, e.g. 2024-12-31T23:59:59Z): %w", field, err)
+	}
+	return &t, nil
 }
