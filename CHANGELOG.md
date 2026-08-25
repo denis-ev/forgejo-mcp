@@ -12,6 +12,8 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-08-25
+
 ### Fixed
 
 - `due_date` on `create_pull_request`, `create_issue`, `edit_issue`,
