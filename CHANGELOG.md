@@ -12,6 +12,17 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+### Fixed
+
+- `due_date` on `create_pull_request`, `create_issue`, `edit_issue`,
+  `create_milestone`, and `edit_milestone` no longer crashes with a raw,
+  opaque Go error (`Time.UnmarshalJSON: input is not a JSON string`, or a
+  confusing time-parsing failure for an empty string) when a client sends a
+  non-conforming value. The parameter is now a plain string parsed
+  server-side, so malformed input produces a normal, field-naming tool error
+  instead of failing during argument decoding.
+  ([#27](https://github.com/denis-ev/forgejo-mcp/issues/27))
+
 ## [0.9.0] - 2026-08-17
 
 ### Added

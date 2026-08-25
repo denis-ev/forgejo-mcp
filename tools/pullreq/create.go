@@ -9,7 +9,6 @@ package pullreq
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v2"
 	"github.com/google/jsonschema-go/jsonschema"
@@ -42,8 +41,8 @@ type CreatePullRequestParams struct {
 	Milestone int `json:"milestone,omitempty"`
 	// Labels is a slice of label IDs to attach to the pull request.
 	Labels []int `json:"labels,omitempty"`
-	// DueDate is the optional deadline for the pull request.
-	DueDate time.Time `json:"due_date"`
+	// DueDate is the optional deadline for the pull request, in RFC 3339 format.
+	DueDate *string `json:"due_date,omitempty"`
 }
 
 // CreatePullRequestImpl implements the MCP tool for creating a new pull request.
@@ -150,8 +149,12 @@ func (impl CreatePullRequestImpl) Handler() mcp.ToolHandlerFor[CreatePullRequest
 			}
 		}
 
-		if !p.DueDate.IsZero() {
-			opt.Deadline = &p.DueDate
+		due, err := tools.ParseOptionalRFC3339("due_date", p.DueDate)
+		if err != nil {
+			return nil, nil, err
+		}
+		if due != nil {
+			opt.Deadline = due
 		}
 
 		pr, _, err := impl.Client.CreatePullRequest(p.Owner, p.Repo, opt)

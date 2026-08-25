@@ -299,8 +299,8 @@ type CreateIssueParams struct {
 	Milestone int `json:"milestone,omitempty"`
 	// Labels is a slice of label IDs to assign to the issue.
 	Labels []int `json:"labels,omitempty"`
-	// DueDate is the optional due date for the issue.
-	DueDate time.Time `json:"due_date,omitempty"`
+	// DueDate is the optional due date for the issue, in RFC 3339 format.
+	DueDate *string `json:"due_date,omitempty"`
 }
 
 // CreateIssueImpl implements the MCP tool for creating a new issue.
@@ -397,8 +397,12 @@ func (impl CreateIssueImpl) Handler() mcp.ToolHandlerFor[CreateIssueParams, any]
 		}
 
 		// Set due date if provided
-		if !p.DueDate.IsZero() {
-			opt.Deadline = &p.DueDate
+		due, err := tools.ParseOptionalRFC3339("due_date", p.DueDate)
+		if err != nil {
+			return nil, nil, err
+		}
+		if due != nil {
+			opt.Deadline = due
 		}
 
 		// Call SDK
@@ -439,8 +443,8 @@ type EditIssueParams struct {
 	Assignees []string `json:"assignees,omitempty"`
 	// Milestone is the new milestone ID to assign to the issue.
 	Milestone int `json:"milestone,omitempty"`
-	// DueDate is the new optional due date for the issue.
-	DueDate time.Time `json:"due_date,omitempty"`
+	// DueDate is the new optional due date for the issue, in RFC 3339 format.
+	DueDate *string `json:"due_date,omitempty"`
 }
 
 // EditIssueImpl implements the MCP tool for editing an existing issue.
@@ -546,8 +550,12 @@ func (impl EditIssueImpl) Handler() mcp.ToolHandlerFor[EditIssueParams, any] {
 		}
 
 		// Set due date if provided
-		if !p.DueDate.IsZero() {
-			opt.Deadline = &p.DueDate
+		due, err := tools.ParseOptionalRFC3339("due_date", p.DueDate)
+		if err != nil {
+			return nil, nil, err
+		}
+		if due != nil {
+			opt.Deadline = due
 		}
 
 		// Call SDK
