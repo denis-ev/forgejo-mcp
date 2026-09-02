@@ -10,6 +10,21 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 > line from `v0.1.0` onward, targeting current Forgejo (verified against
 > **v16.0.1**). See the "About This Fork" section in the README for details.
 
+## [Unreleased]
+
+### Fixed
+
+- The container image failed to build since the go-sdk `v1.7.0` upgrade: the
+  `Dockerfile` build stage still pinned `golang:1.24-alpine` while `go.mod`
+  had moved to `go 1.25.0`, and the Alpine Go images set `GOTOOLCHAIN=local`,
+  so `go mod download` hard-failed instead of upgrading the toolchain. The
+  build stage now uses `golang:1.25-alpine`. The `go-version` floors in the
+  CI and release workflows were `>=1.24` (and `>=1.23` under
+  `.forgejo/`), which resolved to a new-enough Go and so hid the breakage
+  from CI while the pinned image broke; they now state `>=1.25` to match
+  `go.mod`.
+  ([#33](https://github.com/denis-ev/forgejo-mcp/issues/33))
+
 ## [0.10.0] - 2026-09-02
 
 ### Changed
