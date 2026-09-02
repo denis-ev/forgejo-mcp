@@ -41,6 +41,9 @@ func (fakeMergeImpl) Definition() *mcp.Tool {
 				"title": {Type: "string"},
 			},
 			Required: []string{"owner", "repo", "index"},
+			// Mirrors what the SDK derives by reflection for a real params
+			// struct: object schemas reject properties they don't declare.
+			AdditionalProperties: &jsonschema.Schema{Not: &jsonschema.Schema{}},
 		},
 	}
 }
@@ -82,16 +85,24 @@ func TestValidationErrorMiddleware_EndToEnd(t *testing.T) {
 		cs := newSession(t)
 
 		// "do" is the REST API's field name; this server calls it "style".
-		_, err := cs.CallTool(ctx, &mcp.CallToolParams{
+		//
+		// go-sdk v1.7.0+ reports schema validation failures as a successful
+		// tools/call result with IsError set, not a protocol-level error (so
+		// the LLM can see and self-correct) — the enriched message lands in
+		// Content, and err stays nil.
+		res, err := cs.CallTool(ctx, &mcp.CallToolParams{
 			Name: "merge_pull_request",
 			Arguments: map[string]any{
 				"owner": "o", "repo": "r", "index": 1, "do": "merge",
 			},
 		})
-		if err == nil {
+		if err != nil {
+			t.Fatalf("expected a tool-level error, not a protocol error: %v", err)
+		}
+		if !res.IsError {
 			t.Fatal("expected an error for unknown field")
 		}
-		msg := err.Error()
+		msg := res.Content[0].(*mcp.TextContent).Text
 		if !strings.Contains(msg, `did you mean "style"`) {
 			t.Errorf("expected style suggestion in %q", msg)
 		}

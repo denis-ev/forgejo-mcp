@@ -90,8 +90,16 @@ Example:
 		}
 
 		mux := http.NewServeMux()
-		mux.Handle("/sse", mcp.NewSSEHandler(getServer))
-		mux.Handle("/", mcp.NewStreamableHTTPHandler(getServer, nil))
+		// Legacy HTTP+SSE transport (deprecated by the MCP spec, kept for
+		// backward compatibility during the 12-month deprecation window).
+		mux.Handle("/sse", mcp.NewSSEHandler(getServer, nil))
+		// Stateless mode lets clients negotiate protocol version 2026-07-28
+		// (the SDK otherwise falls back to 2025-11-25 over HTTP). getServer
+		// already builds a fresh, per-request *mcp.Server in multi-user mode,
+		// so no session state is lost by going stateless.
+		mux.Handle("/", mcp.NewStreamableHTTPHandler(getServer, &mcp.StreamableHTTPOptions{
+			Stateless: true,
+		}))
 
 		mode := "single"
 		if !singleMode {
