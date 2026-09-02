@@ -10,7 +10,7 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 > line from `v0.1.0` onward, targeting current Forgejo (verified against
 > **v16.0.1**). See the "About This Fork" section in the README for details.
 
-## [Unreleased]
+## [0.10.0] - 2026-09-02
 
 ### Changed
 
