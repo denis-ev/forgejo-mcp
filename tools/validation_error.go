@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -36,14 +37,18 @@ func registerSchemaFields(t *mcp.Tool) {
 	if t == nil || t.InputSchema == nil {
 		return
 	}
+	schema, ok := t.InputSchema.(*jsonschema.Schema)
+	if !ok || schema == nil {
+		return
+	}
 
 	required := map[string]bool{}
-	for _, name := range t.InputSchema.Required {
+	for _, name := range schema.Required {
 		required[name] = true
 	}
 
 	var req, opt []string
-	for name := range t.InputSchema.Properties {
+	for name := range schema.Properties {
 		if required[name] {
 			req = append(req, name)
 		} else {
@@ -81,13 +86,23 @@ var knownAliases = map[string]string{
 	"state":       "status",
 }
 
-// unknownFieldRe matches the encoding/json error text produced when a decoder
-// configured with DisallowUnknownFields encounters an unexpected key.
-var unknownFieldRe = regexp.MustCompile(`unknown field "([^"]+)"`)
+// unknownFieldRe matches the jsonschema validation error text produced when
+// additionalProperties:false rejects one or more unexpected keys (go-sdk
+// v1.7.0+, via github.com/google/jsonschema-go). Earlier SDK versions
+// rejected unknown fields during raw decode with a differently-worded
+// "unknown field \"x\"" error; that path no longer exists since argument
+// decoding now happens after schema validation and no longer disallows
+// unknown fields itself.
+var unknownFieldRe = regexp.MustCompile(`unexpected additional properties \[(.*)\]`)
 
-// enrichUnknownFieldError rewrites the SDK's terminal `unknown field "x"`
-// error into one that also names the accepted fields, and suggests a specific
-// replacement when the rejected name is a known REST alias or a near miss.
+// quotedNameRe extracts each individually-quoted property name from the
+// bracketed list captured by unknownFieldRe.
+var quotedNameRe = regexp.MustCompile(`"([^"]*)"`)
+
+// enrichUnknownFieldError rewrites the SDK's terminal "unexpected additional
+// properties" error into one that also names the accepted fields, and
+// suggests a specific replacement when the rejected name is a known REST
+// alias or a near miss.
 //
 // It returns err unchanged when the error is not an unknown-field error or
 // when the tool's schema was never indexed, so unrelated failures pass through
@@ -101,7 +116,10 @@ func enrichUnknownFieldError(tool string, err error) error {
 	if m == nil {
 		return err
 	}
-	bad := m[1]
+	nameMatches := quotedNameRe.FindAllStringSubmatch(m[1], -1)
+	if len(nameMatches) == 0 {
+		return err
+	}
 
 	fields := acceptedFields(tool)
 	if len(fields) == 0 {
@@ -109,13 +127,24 @@ func enrichUnknownFieldError(tool string, err error) error {
 	}
 
 	var b strings.Builder
-	fmt.Fprintf(&b, "unknown field %q", bad)
-	if tool != "" {
-		fmt.Fprintf(&b, " for %s", tool)
-	}
-
-	if hint := suggestField(bad, fields); hint != "" {
-		fmt.Fprintf(&b, " — did you mean %q?", hint)
+	if len(nameMatches) == 1 {
+		bad := nameMatches[0][1]
+		fmt.Fprintf(&b, "unknown field %q", bad)
+		if tool != "" {
+			fmt.Fprintf(&b, " for %s", tool)
+		}
+		if hint := suggestField(bad, fields); hint != "" {
+			fmt.Fprintf(&b, " — did you mean %q?", hint)
+		}
+	} else {
+		quoted := make([]string, len(nameMatches))
+		for i, nm := range nameMatches {
+			quoted[i] = fmt.Sprintf("%q", nm[1])
+		}
+		fmt.Fprintf(&b, "unknown fields %s", strings.Join(quoted, ", "))
+		if tool != "" {
+			fmt.Fprintf(&b, " for %s", tool)
+		}
 	}
 
 	fmt.Fprintf(&b, "; expected one of: %s", strings.Join(fields, ", "))
@@ -184,14 +213,19 @@ func editDistance(a, b string) int {
 // ValidationErrorMiddleware returns MCP receiving middleware that enriches
 // schema validation failures for tools/call.
 //
-// The unknown-field rejection happens inside the SDK's own argument decoding,
-// upstream of any tool handler, so this is the earliest point in our own code
-// where the error can be observed and rewritten.
+// The unknown-field rejection happens inside the SDK's own argument
+// validation, upstream of any tool handler, so this is the earliest point in
+// our own code where the error can be observed and rewritten. As of go-sdk
+// v1.7.0, a schema validation failure is not a protocol-level error: it comes
+// back as a successful tools/call result with IsError set and the message in
+// Content, so this middleware must rewrite that in place rather than the
+// returned err (which stays nil for this case, per spec — see
+// CallToolResult.IsError).
 func ValidationErrorMiddleware() mcp.Middleware {
 	return func(next mcp.MethodHandler) mcp.MethodHandler {
 		return func(ctx context.Context, method string, req mcp.Request) (mcp.Result, error) {
 			res, err := next(ctx, method, req)
-			if err == nil || method != "tools/call" {
+			if method != "tools/call" {
 				return res, err
 			}
 
@@ -200,7 +234,22 @@ func ValidationErrorMiddleware() mcp.Middleware {
 				return res, err
 			}
 
-			return res, enrichUnknownFieldError(params.Name, err)
+			if err != nil {
+				return res, enrichUnknownFieldError(params.Name, err)
+			}
+
+			result, ok := res.(*mcp.CallToolResult)
+			if !ok || !result.IsError {
+				return res, err
+			}
+			inner := result.GetError()
+			if inner == nil {
+				return res, err
+			}
+			if enriched := enrichUnknownFieldError(params.Name, inner); enriched != inner {
+				result.Content = []mcp.Content{&mcp.TextContent{Text: enriched.Error()}}
+			}
+			return res, err
 		}
 	}
 }

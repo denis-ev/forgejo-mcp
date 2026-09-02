@@ -47,7 +47,7 @@ Example:
 		}
 
 		server := createServer(cl)
-		err = server.Run(context.TODO(), mcp.NewStdioTransport())
+		err = server.Run(context.TODO(), &mcp.StdioTransport{})
 		fmt.Fprintf(os.Stderr, "Server exited with error: %v\n", err)
 		if err != nil {
 			os.Exit(1)

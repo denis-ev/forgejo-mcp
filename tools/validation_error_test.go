@@ -40,8 +40,9 @@ func TestEnrichUnknownFieldError(t *testing.T) {
 	registerTestTool(t)
 
 	t.Run("suggests_style_for_do", func(t *testing.T) {
-		// The exact failure reported in issue #5.
-		in := errors.New(`unmarshaling: json: unknown field "do"`)
+		// The exact failure reported in issue #5, expressed in the
+		// jsonschema-go validation error format used by go-sdk v1.7.0+.
+		in := errors.New(`validating "arguments": validating root: unexpected additional properties ["do"]`)
 		got := enrichUnknownFieldError("merge_pull_request", in).Error()
 
 		if !strings.Contains(got, `unknown field "do"`) {
@@ -64,7 +65,7 @@ func TestEnrichUnknownFieldError(t *testing.T) {
 	})
 
 	t.Run("required_fields_listed_first", func(t *testing.T) {
-		got := enrichUnknownFieldError("merge_pull_request", errors.New(`unknown field "bogus"`)).Error()
+		got := enrichUnknownFieldError("merge_pull_request", errors.New(`unexpected additional properties ["bogus"]`)).Error()
 		list := got[strings.Index(got, "expected one of:"):]
 		if !strings.HasPrefix(list, "expected one of: index, owner, repo,") {
 			t.Errorf("expected required fields first, got %q", list)
@@ -72,14 +73,14 @@ func TestEnrichUnknownFieldError(t *testing.T) {
 	})
 
 	t.Run("fuzzy_match_typo", func(t *testing.T) {
-		got := enrichUnknownFieldError("merge_pull_request", errors.New(`unknown field "titel"`)).Error()
+		got := enrichUnknownFieldError("merge_pull_request", errors.New(`unexpected additional properties ["titel"]`)).Error()
 		if !strings.Contains(got, `did you mean "title"`) {
 			t.Errorf("expected title suggestion, got %q", got)
 		}
 	})
 
 	t.Run("no_suggestion_when_unrelated", func(t *testing.T) {
-		got := enrichUnknownFieldError("merge_pull_request", errors.New(`unknown field "quantum_flux_capacitor"`)).Error()
+		got := enrichUnknownFieldError("merge_pull_request", errors.New(`unexpected additional properties ["quantum_flux_capacitor"]`)).Error()
 		if strings.Contains(got, "did you mean") {
 			t.Errorf("expected no suggestion for unrelated field, got %q", got)
 		}
@@ -102,7 +103,7 @@ func TestEnrichUnknownFieldError(t *testing.T) {
 	})
 
 	t.Run("unknown_tool_left_alone", func(t *testing.T) {
-		in := errors.New(`unknown field "do"`)
+		in := errors.New(`unexpected additional properties ["do"]`)
 		if got := enrichUnknownFieldError("never_registered", in); got != in {
 			t.Errorf("expected original error for unindexed tool, got %v", got)
 		}
@@ -116,7 +117,7 @@ func TestEnrichUnknownFieldError(t *testing.T) {
 				Properties: map[string]*jsonschema.Schema{"owner": {Type: "string"}},
 			},
 		})
-		got := enrichUnknownFieldError("no_style_tool", errors.New(`unknown field "do"`)).Error()
+		got := enrichUnknownFieldError("no_style_tool", errors.New(`unexpected additional properties ["do"]`)).Error()
 		if strings.Contains(got, "did you mean") {
 			t.Errorf("expected no alias suggestion when target absent, got %q", got)
 		}

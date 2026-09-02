@@ -227,17 +227,18 @@ func describeHints(def *mcp.Tool) string {
 // parameters come first so a caller reads the mandatory arguments before the
 // optional ones.
 func renderParams(def *mcp.Tool) string {
-	if def.InputSchema == nil || len(def.InputSchema.Properties) == 0 {
+	schema, ok := def.InputSchema.(*jsonschema.Schema)
+	if !ok || schema == nil || len(schema.Properties) == 0 {
 		return "Parameters: none.\n"
 	}
 
 	required := map[string]bool{}
-	for _, name := range def.InputSchema.Required {
+	for _, name := range schema.Required {
 		required[name] = true
 	}
 
 	var req, opt []string
-	for name := range def.InputSchema.Properties {
+	for name := range schema.Properties {
 		if required[name] {
 			req = append(req, name)
 		} else {
@@ -250,7 +251,7 @@ func renderParams(def *mcp.Tool) string {
 	var b strings.Builder
 	b.WriteString("Parameters:\n\n")
 	for _, name := range append(req, opt...) {
-		s := def.InputSchema.Properties[name]
+		s := schema.Properties[name]
 		fmt.Fprintf(&b, "- `%s` (%s)", name, describeType(s, required[name]))
 		if s != nil && s.Description != "" {
 			fmt.Fprintf(&b, ": %s", s.Description)

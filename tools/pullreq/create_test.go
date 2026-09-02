@@ -150,6 +150,10 @@ func TestCreatePullRequest_DueDate(t *testing.T) {
 // JSON object, which is what triggered issue #27 — now fails with a clean,
 // field-naming decode error instead of the previous opaque
 // "Time.UnmarshalJSON: input is not a JSON string" failure.
+//
+// go-sdk v1.7.0+ catches this at JSON-Schema validation, before decoding into
+// the typed params struct, and reports it as a successful tools/call result
+// with IsError set rather than a protocol-level error.
 func TestCreatePullRequest_DueDate_WireDecode(t *testing.T) {
 	ctx := context.Background()
 
@@ -181,17 +185,20 @@ func TestCreatePullRequest_DueDate_WireDecode(t *testing.T) {
 	}
 	defer cs.Close()
 
-	_, err = cs.CallTool(ctx, &mcp.CallToolParams{
+	res, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name: "create_pull_request",
 		Arguments: map[string]any{
 			"owner": "o", "repo": "r", "head": "h", "base": "b", "title": "t",
 			"due_date": map[string]any{"$date": "2026-08-25T00:00:00Z"},
 		},
 	})
-	if err == nil {
+	if err != nil {
+		t.Fatalf("expected a tool-level error, not a protocol error: %v", err)
+	}
+	if !res.IsError {
 		t.Fatal("expected an error for a non-string due_date")
 	}
-	msg := err.Error()
+	msg := res.Content[0].(*mcp.TextContent).Text
 	if !strings.Contains(msg, "due_date") {
 		t.Errorf("expected the field name in the error, got %q", msg)
 	}

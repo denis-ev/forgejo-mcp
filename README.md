@@ -84,6 +84,8 @@ For STDIO mode, you can skip to **Usage** section.
 
 For SSE/Streamable HTTP mode, you should run `forgejo-mcp` as server before configuring your MCP client.
 
+The Streamable HTTP endpoint (`/`) runs in stateless mode, so it negotiates MCP protocol version **2026-07-28** for clients that support it, while remaining fully backward compatible with `2025-11-25`-and-earlier clients. The legacy SSE endpoint (`/sse`) is unaffected.
+
 Images for this fork are published to GitHub Container Registry (multi-arch: `linux/amd64`, `linux/arm64`):
 
 ```bash

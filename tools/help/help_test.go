@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/raohwork/forgejo-mcp/tools"
@@ -246,10 +247,14 @@ func TestDefinitionMatchesHouseStyle(t *testing.T) {
 	if def.InputSchema == nil {
 		t.Fatal("expected an input schema")
 	}
-	if len(def.InputSchema.Required) != 0 {
-		t.Errorf("topic must stay optional, got required %v", def.InputSchema.Required)
+	schema, ok := def.InputSchema.(*jsonschema.Schema)
+	if !ok || schema == nil {
+		t.Fatalf("expected *jsonschema.Schema, got %T", def.InputSchema)
 	}
-	topic, ok := def.InputSchema.Properties["topic"]
+	if len(schema.Required) != 0 {
+		t.Errorf("topic must stay optional, got required %v", schema.Required)
+	}
+	topic, ok := schema.Properties["topic"]
 	if !ok {
 		t.Fatal("expected a topic property")
 	}
