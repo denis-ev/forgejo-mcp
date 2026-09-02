@@ -12,6 +12,33 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded `github.com/modelcontextprotocol/go-sdk` `v0.4.0` → `v1.7.0`,
+  adopting MCP spec **2026-07-28** (the stateless-core revision). The HTTP
+  `/` endpoint now sets `StreamableHTTPOptions.Stateless = true`, so clients
+  that speak the new protocol negotiate it instead of falling back to
+  `2025-11-25`; the legacy `/sse` transport is unchanged and still available
+  during its deprecation window. Existing `2025-11-25`-and-earlier clients
+  continue to work unchanged — verified against a live request, not just
+  green tests — and the per-request `Authorization` handling used by
+  multi-user HTTP mode is unaffected, since `getServer` already built a fresh
+  server per request before this change.
+  ([#29](https://github.com/denis-ev/forgejo-mcp/issues/29))
+- The unknown-field validation error introduced for
+  [#5](https://github.com/denis-ev/forgejo-mcp/issues/5) now matches the
+  jsonschema-go v0.4.3 error format (`unexpected additional properties`)
+  instead of the old raw-decode `unknown field` text, since go-sdk v1.7.0
+  validates arguments against the JSON schema before decoding into the typed
+  params struct rather than rejecting unknown keys during decode. The
+  enriched, field-naming message (with a suggestion for REST-alias and
+  typo'd field names) is unchanged from the caller's perspective; only the
+  SDK-internal error this code parses changed shape. As of this SDK version,
+  a validation failure surfaces as a normal `tools/call` result with
+  `isError: true`, not a protocol-level error — this affects any client code
+  that only checked for a returned error rather than also checking
+  `IsError`/`Content`.
+
 ## [0.9.1] - 2026-08-25
 
 ### Fixed
