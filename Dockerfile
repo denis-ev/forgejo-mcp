@@ -6,7 +6,7 @@
 # image can be built and reproduced entirely by CI without any
 # out-of-band build step, and BuildKit's automatic TARGETOS/TARGETARCH
 # handle cross-compilation for multi-arch images.
-FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS build
 
 ARG TARGETOS
 ARG TARGETARCH
