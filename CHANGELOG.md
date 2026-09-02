@@ -38,6 +38,12 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
   `isError: true`, not a protocol-level error — this affects any client code
   that only checked for a returned error rather than also checking
   `IsError`/`Content`.
+- CI workflows now pin `actions/checkout@v7.0.1` and `actions/setup-go@v7.0.0`
+  (previously `@v4` and `@v5`). The old majors target Node.js 20, which GitHub
+  runners force onto Node.js 24 while emitting a deprecation warning on every
+  run; the new majors declare `runs.using: node24` natively. The matching pins
+  in `.forgejo/workflows/` were bumped alongside for consistency.
+  ([#31](https://github.com/denis-ev/forgejo-mcp/issues/31))
 
 ## [0.9.1] - 2026-08-25
 
