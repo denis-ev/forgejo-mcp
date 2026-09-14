@@ -252,7 +252,8 @@ pull request merging on top and introduces the fork's own release automation.
   `merge`, `rebase`, `rebase-merge`, or `squash` strategies, with optional
   custom merge-commit title/message, head-branch deletion after merge, and
   scheduling an auto-merge once required status checks succeed.
-- **`is_pull_request_merged`** tool — read-only check of whether a pull request has already been merged.
+- **`is_pull_request_merged`** tool — read-only check of whether a pull request
+  has already been merged.
 - `CHANGELOG.md` (this file) and a `denis-ev`-owned semantic-versioning line.
 - `.github/workflows/release.yml` — on every `v*` tag, runs the test suite,
   cross-compiles binaries for linux/darwin/windows (amd64 + arm64) with
