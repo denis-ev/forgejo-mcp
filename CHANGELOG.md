@@ -10,6 +10,16 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 > line from `v0.1.0` onward, targeting current Forgejo (verified against
 > **v16.0.1**). See the "About This Fork" section in the README for details.
 
+## [Unreleased]
+
+### Fixed
+
+- MCP tool discovery now returns the complete registered catalog in the first
+  `tools/list` response. The server no longer overrides the Go SDK's 1,000-item
+  default with a 50-item page, which hid later tools such as pull-request merge
+  and review operations from clients that do not follow `nextCursor` during
+  initial discovery.
+
 ## [0.10.1] - 2026-09-02
 
 ### Fixed
@@ -197,24 +207,25 @@ tooling for everyday repository/PR/CI workflows.
 
 ### Added
 
-- **`list_branches`** tool — list a repository's branches with protection
-  status and each branch's tip commit, with pagination.
-- **`create_branch`** tool — create a new branch, optionally from a specified
-  source branch.
-- **`list_tags`** tool — list a repository's git tags with the tagged commit
-  and any message, with pagination.
-- **`create_tag`** tool — create a new git tag, optionally targeting a specific
-  commit/branch and including an annotation message.
-
-## [0.3.0] - 2026-07-22
-
-### Added
-
 - **`get_pull_request_files`** tool — list the files changed by a pull request,
   with per-file status and addition/deletion counts, with pagination.
 - **`get_pull_request_diff`** tool — fetch a pull request's raw unified diff
   (truncated for very large diffs, optional binary inclusion). Together these
   let a client actually review a PR's contents, not just its metadata.
+
+## [0.3.0] - 2026-07-22
+
+### Added
+
+- **`get_file_contents`** tool — read a file's decoded contents, or list a
+  directory's entries, at an optional ref (branch, tag, or commit SHA). Large
+  files are truncated and binary files are detected and skipped rather than
+  dumped. This closes the fork's biggest gap: previously the server could
+  manage repository *metadata* but could not read a single line of source.
+- **`list_commits`** tool — list commits with optional branch/SHA start point,
+  path filter, and pagination.
+- **`get_commit`** tool — view a single commit's metadata and stats, optionally
+  including its raw unified diff (truncated for very large diffs).
 
 ## [0.2.0] - 2026-07-22
 

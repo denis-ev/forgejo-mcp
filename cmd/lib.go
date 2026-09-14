@@ -138,7 +138,8 @@ func createServer(cl *tools.Client) *mcp.Server {
 		Title:   "Forgejo MCP Server",
 		Version: types.VERSION[1:], // strip leading 'v'
 	}, &mcp.ServerOptions{
-		PageSize:     50,
+		// Keep the SDK's 1000-item default so clients that ignore nextCursor
+		// discover the entire current tool catalog in their first response.
 		Instructions: "An MCP server to interact with repositories on a Forgejo/Gitea instance.",
 	})
 	// Enrich schema validation errors so a rejected field name also reports
