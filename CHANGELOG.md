@@ -211,8 +211,10 @@ tooling for everyday repository/PR/CI workflows.
   status and each branch's tip commit, with pagination.
 - **`create_branch`** tool — create a new branch, optionally from a specified
   source branch.
-- **`list_tags`** tool — list the repository's git tags, including the tagged commit and any message, with pagination.
-- **`create_tag`** tool — create a new git tag, optionally targeting a specific commit/branch and including an annotation message.
+- **`list_tags`** tool — list a repository's git tags with the tagged commit
+  and any message, with pagination.
+- **`create_tag`** tool — create a new git tag, optionally targeting a specific
+  commit/branch and including an annotation message.
 
 ## [0.3.0] - 2026-07-22
 
@@ -220,7 +222,7 @@ tooling for everyday repository/PR/CI workflows.
 
 - **`get_pull_request_files`** tool — list the files changed by a pull request,
   with per-file status and addition/deletion counts, with pagination.
-- **`get_pull_request_diff`** tool — fetch the pull request's raw unified diff
+- **`get_pull_request_diff`** tool — fetch a pull request's raw unified diff
   (truncated for very large diffs, optional binary inclusion). Together these
   let a client actually review a PR's contents, not just its metadata.
 
@@ -236,7 +238,7 @@ tooling for everyday repository/PR/CI workflows.
 - **`list_commits`** tool — list commits with optional branch/SHA start point,
   path filter, and pagination.
 - **`get_commit`** tool — view a single commit's metadata and stats, optionally
-  including its raw unified diff (truncated for large diffs).
+  including its raw unified diff (truncated for very large diffs).
 
 ## [0.1.0] - 2026-07-22
 
@@ -250,8 +252,7 @@ pull request merging on top and introduces the fork's own release automation.
   `merge`, `rebase`, `rebase-merge`, or `squash` strategies, with optional
   custom merge-commit title/message, head-branch deletion after merge, and
   scheduling an auto-merge once required status checks succeed.
-- **`is_pull_request_merged`** tool — read-only check of whether a pull request
-  has already been merged.
+- **`is_pull_request_merged`** tool — read-only check of whether a pull request has already been merged.
 - `CHANGELOG.md` (this file) and a `denis-ev`-owned semantic-versioning line.
 - `.github/workflows/release.yml` — on every `v*` tag, runs the test suite,
   cross-compiles binaries for linux/darwin/windows (amd64 + arm64) with
@@ -268,3 +269,4 @@ pull request merging on top and introduces the fork's own release automation.
   `reply_to_review_comment`.
 - `list_user_repositories`; wiki page title/slug 404 fallback; label IDs in
   markdown output; multi-user HTTP token-prefix fix; wiki pagination fix.
+- CI (`ci.yml`) and GHCR publishing (`docker-publish.yml`).
