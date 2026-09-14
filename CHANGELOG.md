@@ -10,7 +10,7 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 > line from `v0.1.0` onward, targeting current Forgejo (verified against
 > **v16.0.1**). See the "About This Fork" section in the README for details.
 
-## [Unreleased]
+## [0.10.2] - 2026-09-14
 
 ### Fixed
 
@@ -207,25 +207,22 @@ tooling for everyday repository/PR/CI workflows.
 
 ### Added
 
-- **`get_pull_request_files`** tool — list the files changed by a pull request,
-  with per-file status and addition/deletion counts, with pagination.
-- **`get_pull_request_diff`** tool — fetch a pull request's raw unified diff
-  (truncated for very large diffs, optional binary inclusion). Together these
-  let a client actually review a PR's contents, not just its metadata.
+- **`list_branches`** tool — list a repository's branches with protection
+  status and each branch's tip commit, with pagination.
+- **`create_branch`** tool — create a new branch, optionally from a specified
+  source branch.
+- **`list_tags`** tool — list the repository's git tags, including the tagged commit and any message, with pagination.
+- **`create_tag`** tool — create a new git tag, optionally targeting a specific commit/branch and including an annotation message.
 
 ## [0.3.0] - 2026-07-22
 
 ### Added
 
-- **`get_file_contents`** tool — read a file's decoded contents, or list a
-  directory's entries, at an optional ref (branch, tag, or commit SHA). Large
-  files are truncated and binary files are detected and skipped rather than
-  dumped. This closes the fork's biggest gap: previously the server could
-  manage repository *metadata* but could not read a single line of source.
-- **`list_commits`** tool — list commits with optional branch/SHA start point,
-  path filter, and pagination.
-- **`get_commit`** tool — view a single commit's metadata and stats, optionally
-  including its raw unified diff (truncated for very large diffs).
+- **`get_pull_request_files`** tool — list the files changed by a pull request,
+  with per-file status and addition/deletion counts, with pagination.
+- **`get_pull_request_diff`** tool — fetch the pull request's raw unified diff
+  (truncated for very large diffs, optional binary inclusion). Together these
+  let a client actually review a PR's contents, not just its metadata.
 
 ## [0.2.0] - 2026-07-22
 
@@ -239,7 +236,7 @@ tooling for everyday repository/PR/CI workflows.
 - **`list_commits`** tool — list commits with optional branch/SHA start point,
   path filter, and pagination.
 - **`get_commit`** tool — view a single commit's metadata and stats, optionally
-  including its raw unified diff (truncated for very large diffs).
+  including its raw unified diff (truncated for large diffs).
 
 ## [0.1.0] - 2026-07-22
 
@@ -271,4 +268,3 @@ pull request merging on top and introduces the fork's own release automation.
   `reply_to_review_comment`.
 - `list_user_repositories`; wiki page title/slug 404 fallback; label IDs in
   markdown output; multi-user HTTP token-prefix fix; wiki pagination fix.
-- CI (`ci.yml`) and GHCR publishing (`docker-publish.yml`).
