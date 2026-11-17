@@ -51,13 +51,18 @@ Then this tool is made for you!
 - Every write tool accepts `new_branch` to branch off first, so a change can be prepared for a pull request without touching the base branch
 - Together with `create_branch` and `create_pull_request`, the full branch → commit → PR flow now runs through MCP alone
 
+### Branch Protection & Repository Settings
+- List, read, create, edit and delete branch protection rules (`list_branch_protections`, `get_branch_protection`, `create_branch_protection`, `edit_branch_protection`, `delete_branch_protection`): disable direct pushes, require status checks and approvals, push/merge whitelists, signed commits, and `apply_to_admins`
+- Change repository settings such as the default branch, visibility, enabled units and allowed merge styles (`edit_repository`)
+- Both need a token with repository admin rights
+
 ### Release Management
 - Manage version releases
 - Manage release attachments
 
 ### Pull Requests
 - View, list, and create Pull Requests
-- Merge Pull Requests (merge/rebase/rebase-merge/squash, optional auto-merge on checks) and check merge status
+- Merge Pull Requests (merge/rebase/rebase-merge/squash/fast-forward-only, optional auto-merge on checks, optional `head_commit_id` guard) and check merge status; a refused merge returns Forgejo's reason as a tool error, and a scheduled auto-merge can be cancelled (`cancel_auto_merge`)
 - Inspect a Pull Request's changed files (`get_pull_request_files`) and raw diff (`get_pull_request_diff`)
 - List Pull Request reviews and inline review comments
 - Create Pull Request reviews and reply to review comments

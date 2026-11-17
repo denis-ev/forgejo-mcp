@@ -28,10 +28,22 @@ var UserAgent = "Forgejo-MCP/" + types.VERSION
 type httpStatusError struct {
 	code   int
 	status string
+	// message is Forgejo's own explanation from the error body, if any.
+	message string
 }
 
 func (e *httpStatusError) Error() string {
+	if e.message != "" {
+		return fmt.Sprintf("HTTP %d: %s: %s", e.code, e.status, e.message)
+	}
 	return fmt.Sprintf("HTTP %d: %s", e.code, e.status)
+}
+
+// newHTTPStatusError builds an httpStatusError from a failed response,
+// reading (a bounded prefix of) its body for Forgejo's error message.
+func newHTTPStatusError(resp *http.Response) *httpStatusError {
+	data, _ := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+	return &httpStatusError{code: resp.StatusCode, status: resp.Status, message: apiErrorMessage(data)}
 }
 
 // isNotFoundErr reports whether err represents an HTTP 404 response returned
@@ -139,7 +151,12 @@ func (c *Client) sendSimpleRequest(method, endpoint string, paramObj, respObj an
 
 	// Check HTTP status
 	if resp.StatusCode >= 400 {
-		return &httpStatusError{code: resp.StatusCode, status: resp.Status}
+		return newHTTPStatusError(resp)
+	}
+
+	// Some endpoints answer 204 No Content on success.
+	if resp.StatusCode == http.StatusNoContent || respObj == nil {
+		return nil
 	}
 
 	// Parse JSON response
@@ -192,7 +209,7 @@ func (c *Client) sendRawRequest(method, endpoint string, paramObj any) ([]byte, 
 	}
 
 	if resp.StatusCode >= 400 {
-		return nil, &httpStatusError{code: resp.StatusCode, status: resp.Status}
+		return nil, &httpStatusError{code: resp.StatusCode, status: resp.Status, message: apiErrorMessage(data)}
 	}
 
 	return data, nil
@@ -260,7 +277,7 @@ func (c *Client) sendUploadRequest(endpoint, filename string, file io.Reader, ex
 
 	// Check HTTP status
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, resp.Status)
+		return newHTTPStatusError(resp)
 	}
 
 	// Parse JSON response

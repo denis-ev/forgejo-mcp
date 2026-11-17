@@ -10,6 +10,41 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 > line from `v0.1.0` onward, targeting current Forgejo (verified against
 > **v16.0.1**). See the "About This Fork" section in the README for details.
 
+## [Unreleased]
+
+### Added
+
+- **Branch protection tools** — `list_branch_protections`, `get_branch_protection`,
+  `create_branch_protection`, `edit_branch_protection` and
+  `delete_branch_protection`. Covers disabling direct pushes, required status
+  checks, required approvals, push/merge/approval whitelists, review blocking,
+  signed commits, protected file patterns and `apply_to_admins`. Unset options
+  are omitted from the request, so create uses Forgejo's defaults (direct pushes
+  disabled) and edit keeps current values. Giving `status_check_contexts`
+  switches on `enable_status_check`. ([#36](https://github.com/denis-ev/forgejo-mcp/issues/36))
+- **`edit_repository`** tool — change the default branch, visibility,
+  description, enabled units, allowed merge styles and pull request defaults.
+  Only the options passed are changed. ([#36](https://github.com/denis-ev/forgejo-mcp/issues/36))
+- **`cancel_auto_merge`** tool — cancel an auto-merge scheduled with
+  `merge_when_checks_succeed`. ([#36](https://github.com/denis-ev/forgejo-mcp/issues/36))
+- `merge_pull_request` accepts the `fast-forward-only` style and a
+  `head_commit_id` guard that makes Forgejo refuse the merge if the PR head moved.
+  ([#36](https://github.com/denis-ev/forgejo-mcp/issues/36))
+
+### Fixed
+
+- `merge_pull_request` now reports every merge outcome correctly. A scheduled
+  auto-merge (HTTP 201) used to be reported as "was not merged". An immediate
+  merge under `merge_when_checks_succeed` used to be reported as scheduled. A
+  merge whose head branch could not be deleted afterwards (HTTP 403) used to be
+  reported as not merged. A refused merge (failing required checks, missing
+  approvals, conflicts, a disallowed style) is now a tool error carrying
+  Forgejo's reason, where it used to be a successful result with a generic
+  message. ([#36](https://github.com/denis-ev/forgejo-mcp/issues/36))
+- Errors from custom-HTTP endpoints now include Forgejo's error message, where
+  they used to show only the status line. A `204 No Content` response is no
+  longer treated as a decode failure. ([#36](https://github.com/denis-ev/forgejo-mcp/issues/36))
+
 ## [0.10.2] - 2026-09-14
 
 ### Fixed

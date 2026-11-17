@@ -65,7 +65,11 @@ var domainOrder = []domain{
 			"A stale sha is rejected, so read immediately before writing.\n\n" +
 			"Use `push_files` when one logical change touches several files: it lands them in a single atomic commit. " +
 			"Every write tool also accepts `new_branch`, which branches off `branch` first, so a change can be prepared " +
-			"for a pull request without touching the base branch.\n",
+			"for a pull request without touching the base branch.\n\n" +
+			"Branch protection rules (`list_branch_protections` … `delete_branch_protection`) and `edit_repository` need a token " +
+			"with **repository admin** rights; without it Forgejo answers 403. Rules are addressed by `name`, the branch name or " +
+			"glob pattern they protect. Required checks are matched against the exact contexts CI reports, so read them from " +
+			"`get_ci_status` before writing `status_check_contexts`.\n",
 	},
 	{
 		key:     "label",
@@ -172,6 +176,10 @@ var domainByTopic = func() map[string]domain {
 		"content":      "repository",
 		"contents":     "repository",
 		"status":       "repository",
+		"protection":   "repository",
+		"protections":  "repository",
+		"settings":     "repository",
+		"merge":        "pull_requests",
 	}
 	for alias, target := range aliases {
 		if d, ok := out[target]; ok {
@@ -237,7 +245,19 @@ const workflows = "## Common workflows\n\n" +
 	"`update_file` and `delete_file` need the blob `sha` from `get_file_contents`\n" +
 	"3. `create_pull_request` — open the PR\n" +
 	"4. `get_ci_status` — wait for green\n" +
-	"5. `merge_pull_request` — the merge method parameter is `style`, not `do` or `merge_method`\n\n"
+	"5. `merge_pull_request` — the merge method parameter is `style`, not `do` or `merge_method`\n\n" +
+	"### Merge into a protected branch\n\n" +
+	"When direct pushes are disabled, merging a PR is the only way to update the branch:\n\n" +
+	"1. `get_ci_status` with `pull_number` — confirm the required checks are green\n" +
+	"2. `merge_pull_request` — pass `head_commit_id` to refuse the merge if the PR moved since you checked; " +
+	"or pass `merge_when_checks_succeed=true` to let Forgejo merge once the checks pass (`cancel_auto_merge` calls it off)\n" +
+	"3. A refusal comes back as an error carrying Forgejo's reason (failing checks, missing approvals, conflicts, " +
+	"a style the repository does not allow) — fix that, do not retry blindly\n\n" +
+	"### Protect a branch\n\n" +
+	"1. `get_ci_status` on a recent ref — copy the exact check contexts\n" +
+	"2. `create_branch_protection` with `rule_name`, `status_check_contexts` and, to stop direct pushes, no `enable_push` " +
+	"(it defaults to disabled)\n" +
+	"3. `edit_repository` with `default_branch` so new pull requests target the right branch\n\n"
 
 // paginationNotes documents the pagination convention shared by every list
 // tool.
@@ -263,9 +283,9 @@ const knownGaps = "## Known gaps\n\n" +
 	"Not implemented — do not go looking for a tool:\n\n" +
 	"- Editing an existing pull request (title, body, base branch)\n" +
 	"- Uploading new issue or release attachments (listing, renaming and deleting work)\n" +
-	"- Deleting branches, and branch protection\n" +
+	"- Deleting branches\n" +
 	"- Dispatching, re-running or cancelling Actions runs\n" +
-	"- Repository creation, forking and settings; webhooks, collaborators and topics\n\n"
+	"- Repository creation, forking, renaming and transfer; webhooks, collaborators and topics\n\n"
 
 // toolNotes holds per-tool warnings that belong in help rather than in the
 // tool description itself, either because they reference another tool or
@@ -277,7 +297,12 @@ var toolNotes = map[string]string{
 	"remove_issue_label": "`label` is the label **ID**, not its name.",
 	"list_repo_issues": "Filters by label **names** here, unlike the issue label tools which use IDs. " +
 		"Returns pull requests as well, since Forgejo models them as issues.",
-	"merge_pull_request": "The merge method parameter is `style`. The REST spellings `do` and `merge_method` are rejected.",
+	"merge_pull_request": "The merge method parameter is `style`. The REST spellings `do` and `merge_method` are rejected. " +
+		"A refused merge is a tool error with Forgejo's reason; a scheduled auto-merge and an immediate merge are reported distinctly.",
+	"create_branch_protection": "Unset options take Forgejo's defaults, so omitting `enable_push` disables direct pushes. " +
+		"Giving `status_check_contexts` switches on `enable_status_check` unless you set it explicitly.",
+	"edit_branch_protection": "Only the options you pass change. A list option replaces the whole list; pass `[]` to clear it.",
+	"edit_repository":        "Only the options you pass change. Changing `default_branch` only changes which branch new pull requests target.",
 	"get_action_job_logs": "Requires Forgejo v16.0.1 or newer; older servers return 404. " +
 		"`job_id` comes from `list_action_run_jobs` or from a failing check reported by `get_ci_status`.",
 	"list_action_run_jobs": "`run_id` is the database ID from `list_action_runs`, not a run number.",
